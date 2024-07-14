@@ -1,7 +1,7 @@
 part of 'di_container.dart';
 
 mixin DiContainerImplCopyParentMixin on DiContainerImpl {
-  Map<Type, DiEntity> _directlyRegisteredMap = {};
+  final Map<Type, DiEntity> _directlyRegisteredMap = {};
 
   @override
   void setParent(DiContainerImpl? parent) {
