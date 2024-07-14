@@ -1,18 +1,11 @@
 part of 'di_container.dart';
 
 mixin DiContainerImplCopyParentMixin on DiContainerImpl {
-  final Map<Type, DiEntity> _directlyRegisteredMap = {};
-
   @override
-  void setParent(DiContainerImpl? parent) {
-    _parent = parent;
-
-    if (parent != null) {
-      _registeredMap = {...parent._registeredMap, ..._directlyRegisteredMap};
-    } else {
-      _registeredMap = _directlyRegisteredMap;
-    }
-  }
+  late final Map<Type, DiEntity> _registeredMap = {
+    ...(_parent?._registeredMap ?? {})
+  };
+  final Map<Type, DiEntity> _directlyRegisteredMap = {};
 
   @override
   T? _lookUp<T>({
@@ -70,9 +63,7 @@ mixin DiContainerImplCopyParentMixin on DiContainerImpl {
 
 mixin DiContainerImplLinkParentMixin on DiContainerImpl {
   @override
-  void setParent(DiContainerImpl? container) {
-    _parent = container;
-  }
+  final Map<Type, DiEntity> _registeredMap = {};
 
   @override
   T? _lookUp<T>({required Object? param1, required Object? param2}) =>
@@ -87,32 +78,6 @@ mixin DiContainerImplLinkParentMixin on DiContainerImpl {
 
   @override
   bool _isRegisteredInAncestors<T>() => _parent?.isRegistered<T>() ?? false;
-
-  @override
-  String toString() {
-    return 'DiContainer('
-        '$name, '
-        '[${_registeredMap.keys.join(', ')}]'
-        ')';
-  }
-}
-
-mixin DiContainerImplIgnoreParentMixin on DiContainerImpl {
-  @override
-  void setParent(DiContainerImpl? _) {}
-
-  @override
-  T? _lookUp<T>({required Object? param1, required Object? param2}) => null;
-
-  @override
-  Future<T>? _lookUpAsync<T>({
-    required Object? param1,
-    required Object? param2,
-  }) =>
-      null;
-
-  @override
-  bool _isRegisteredInAncestors<T>() => false;
 
   @override
   String toString() {

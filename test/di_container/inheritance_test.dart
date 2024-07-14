@@ -10,22 +10,20 @@ void main() {
       group(
         'Link parent',
         () {
-          DiContainer getUut([String? name]) => DiContainer(
+          DiContainer getUut({String? name, DiContainer? parent}) =>
+              DiContainer(
                 name ?? 'uut',
                 inheritanceType: DiInheritanceType.linkParent,
+                parent: parent,
               );
 
           test(
-            'Parent entity is retrieved after linking',
+            'Parent entity is retrieved',
             () {
               final parent = getUut();
               parent.registerSingleton<SimpleClass>(SimpleClass());
 
-              final uut = getUut();
-
-              expect(uut.isRegistered<SimpleClass>(), isFalse);
-
-              uut.setParent(parent);
+              final uut = getUut(parent: parent);
 
               expect(uut.isRegistered<SimpleClass>(), isTrue);
             },
@@ -34,15 +32,9 @@ void main() {
           test(
             '"hierarchy" returns all container\'s names in a bottom-to-top order',
             () {
-              final parentOfParent = getUut('parentOfParent');
-              final parent = getUut('parent');
-              final uut = getUut();
-
-              expect(uut.hierarchy.length, 1);
-              expect(uut.hierarchy.first, uut.name);
-
-              parent.setParent(parentOfParent);
-              uut.setParent(parent);
+              final parentOfParent = getUut(name: 'parentOfParent');
+              final parent = getUut(name: 'parent', parent: parentOfParent);
+              final uut = getUut(parent: parent);
 
               expect(uut.hierarchy.length, 3);
               expect(uut.hierarchy.first, uut.name);
@@ -54,15 +46,13 @@ void main() {
           test(
             'Parent registration is overshadowed by the child',
             () {
-              final parent = getUut('parent');
+              final parent = getUut(name: 'parent');
               final parentSingleton = SimpleClass();
               parent.registerSingleton<SimpleClass>(parentSingleton);
 
-              final uut = getUut();
+              final uut = getUut(parent: parent);
               final uutSingleton = SimpleClass();
               parent.registerSingleton<SimpleClass>(uutSingleton);
-
-              uut.setParent(parent);
 
               expect(uut.get<SimpleClass>() == uutSingleton, isTrue);
               expect(uut.get<SimpleClass>() == parentSingleton, isFalse);
@@ -74,22 +64,20 @@ void main() {
       group(
         'Copy parent',
         () {
-          DiContainer getUut([String? name]) => DiContainer(
+          DiContainer getUut({String? name, DiContainer? parent}) =>
+              DiContainer(
                 name ?? 'uut',
                 inheritanceType: DiInheritanceType.copyParent,
+                parent: parent,
               );
 
           test(
-            'Parent entity is retrieved after linking',
+            'Parent entity is retrieved',
             () {
               final parent = getUut();
               parent.registerSingleton<SimpleClass>(SimpleClass());
 
-              final uut = getUut();
-
-              expect(uut.isRegistered<SimpleClass>(), isFalse);
-
-              uut.setParent(parent);
+              final uut = getUut(parent: parent);
 
               expect(uut.isRegistered<SimpleClass>(), isTrue);
             },
@@ -98,15 +86,9 @@ void main() {
           test(
             '"hierarchy" returns all container\'s names in a bottom-to-top order',
             () {
-              final parentOfParent = getUut('parentOfParent');
-              final parent = getUut('parent');
-              final uut = getUut();
-
-              expect(uut.hierarchy.length, 1);
-              expect(uut.hierarchy.first, uut.name);
-
-              parent.setParent(parentOfParent);
-              uut.setParent(parent);
+              final parentOfParent = getUut(name: 'parentOfParent');
+              final parent = getUut(name: 'parent', parent: parentOfParent);
+              final uut = getUut(parent: parent);
 
               expect(uut.hierarchy.length, 3);
               expect(uut.hierarchy.first, uut.name);
@@ -118,104 +100,16 @@ void main() {
           test(
             'Parent registration is overshadowed by the child',
             () {
-              final parent = getUut('parent');
+              final parent = getUut(name: 'parent');
               final parentSingleton = SimpleClass();
               parent.registerSingleton<SimpleClass>(parentSingleton);
 
-              final uut = getUut();
+              final uut = getUut(parent: parent);
               final uutSingleton = SimpleClass();
               parent.registerSingleton<SimpleClass>(uutSingleton);
 
-              uut.setParent(parent);
-
               expect(uut.get<SimpleClass>() == uutSingleton, isTrue);
               expect(uut.get<SimpleClass>() == parentSingleton, isFalse);
-            },
-          );
-        },
-      );
-
-      group(
-        'Ignore parent',
-        () {
-          DiContainer getUut([String? name]) => DiContainer(
-                name ?? 'uut',
-                inheritanceType: DiInheritanceType.ignoreParent,
-              );
-
-          test(
-            'Parent entity is not retrieved after linking',
-            () {
-              final parent = DiContainer(
-                'parent',
-                inheritanceType: DiInheritanceType.copyParent,
-              );
-              parent.registerSingleton<SimpleClass>(SimpleClass());
-
-              final uut = getUut();
-
-              expect(uut.isRegistered<SimpleClass>(), isFalse);
-
-              uut.setParent(parent);
-
-              expect(uut.isRegistered<SimpleClass>(), isFalse);
-            },
-          );
-
-          test(
-            '"hierarchy" returns only the current container\'s name',
-            () {
-              final parentOfParent = DiContainer(
-                'parentOfParent',
-              );
-              final parent = DiContainer(
-                'parent',
-                inheritanceType: DiInheritanceType.copyParent,
-              );
-              final uut = getUut();
-
-              expect(uut.hierarchy.length, 1);
-              expect(uut.hierarchy.first, uut.name);
-
-              parent.setParent(parentOfParent);
-              uut.setParent(parent);
-
-              expect(uut.hierarchy.length, 1);
-              expect(uut.hierarchy.first, uut.name);
-            },
-          );
-
-          test(
-            'Any container below "ignoreParent" container also can not see any '
-            'entities from containers above closest "ignoreParent" container',
-            () {
-              final parentOfParent = DiContainer('parentOfParent');
-              final parent = DiContainer(
-                'parent',
-                inheritanceType: DiInheritanceType.copyParent,
-              );
-              final uut = getUut();
-              final child = DiContainer(
-                'child',
-                inheritanceType: DiInheritanceType.copyParent,
-              );
-              final childOfChild = DiContainer(
-                'childOfChild',
-                inheritanceType: DiInheritanceType.copyParent,
-              );
-
-              expect(uut.hierarchy.length, 1);
-              expect(uut.hierarchy.first, uut.name);
-
-              parent.setParent(parentOfParent);
-              uut.setParent(parent);
-              child.setParent(uut);
-              childOfChild.setParent(child);
-
-              expect(uut.hierarchy.length, 1);
-              expect(uut.hierarchy.first, uut.name);
-              expect(child.hierarchy.length, 2);
-              expect(childOfChild.hierarchy.length, 3);
             },
           );
         },

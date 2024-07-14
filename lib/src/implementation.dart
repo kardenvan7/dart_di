@@ -3,13 +3,34 @@ part of 'di_container.dart';
 typedef _AsyncVoidCallback = FutureOr<void> Function();
 
 abstract class DiContainerImpl implements DiContainer {
-  DiContainerImpl(this.name);
+  DiContainerImpl._(
+    this.name, {
+    DiContainerImpl? parent,
+  }) : _parent = parent;
+
+  factory DiContainerImpl(
+    String name, {
+    DiInheritanceType? inheritanceType,
+    DiContainer? parent,
+  }) {
+    parent = parent as DiContainerImpl?;
+
+    return switch (inheritanceType ?? DartDiConfig.defaultInheritanceType) {
+      DiInheritanceType.copyParent => DiContainerImplCopyParent(
+          name,
+          parent: parent,
+        ),
+      DiInheritanceType.linkParent => DiContainerImplLinkParent(
+          name,
+          parent: parent,
+        ),
+    };
+  }
 
   @override
   final String name;
-
-  DiContainerImpl? _parent;
-  Map<Type, DiEntity> _registeredMap = {};
+  final DiContainerImpl? _parent;
+  Map<Type, DiEntity> get _registeredMap;
   final Set<_AsyncVoidCallback> _disposables = {};
 
   @override
@@ -167,9 +188,6 @@ abstract class DiContainerImpl implements DiContainer {
   bool isRegistered<T>() =>
       _registeredMap.containsKey(T) || _isRegisteredInAncestors<T>();
 
-  @override
-  void setParent(covariant DiContainerImpl? container);
-
   void visitAncestors(bool Function(DiContainerImpl) callback) {
     DiContainerImpl? currentAncestor = _parent;
 
@@ -201,15 +219,10 @@ abstract class DiContainerImpl implements DiContainer {
 
 final class DiContainerImplCopyParent extends DiContainerImpl
     with DiContainerImplCopyParentMixin {
-  DiContainerImplCopyParent(super.name);
+  DiContainerImplCopyParent(super.name, {super.parent}) : super._();
 }
 
 final class DiContainerImplLinkParent extends DiContainerImpl
     with DiContainerImplLinkParentMixin {
-  DiContainerImplLinkParent(super.name);
-}
-
-final class DiContainerImplIgnoreParent extends DiContainerImpl
-    with DiContainerImplIgnoreParentMixin {
-  DiContainerImplIgnoreParent(super.name);
+  DiContainerImplLinkParent(super.name, {super.parent}) : super._();
 }
