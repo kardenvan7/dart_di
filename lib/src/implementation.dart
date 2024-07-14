@@ -6,7 +6,9 @@ abstract class DiContainerImpl implements DiContainer {
   DiContainerImpl._(
     this.name, {
     DiContainerImpl? parent,
-  }) : _parent = parent;
+    Map<Type, DiEntity>? initialMap,
+  })  : _parent = parent,
+        _registeredMap = initialMap ?? {};
 
   factory DiContainerImpl(
     String name, {
@@ -30,7 +32,7 @@ abstract class DiContainerImpl implements DiContainer {
   @override
   final String name;
   final DiContainerImpl? _parent;
-  Map<Type, DiEntity> get _registeredMap;
+  final Map<Type, DiEntity> _registeredMap;
   final Set<_AsyncVoidCallback> _disposables = {};
 
   @override
@@ -219,7 +221,8 @@ abstract class DiContainerImpl implements DiContainer {
 
 final class DiContainerImplCopyParent extends DiContainerImpl
     with DiContainerImplCopyParentMixin {
-  DiContainerImplCopyParent(super.name, {super.parent}) : super._();
+  DiContainerImplCopyParent(super.name, {super.parent})
+      : super._(initialMap: parent == null ? null : {...parent._registeredMap});
 }
 
 final class DiContainerImplLinkParent extends DiContainerImpl

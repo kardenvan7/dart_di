@@ -1,10 +1,6 @@
 part of 'di_container.dart';
 
 mixin DiContainerImplCopyParentMixin on DiContainerImpl {
-  @override
-  late final Map<Type, DiEntity> _registeredMap = {
-    ...(_parent?._registeredMap ?? {})
-  };
   final Map<Type, DiEntity> _directlyRegisteredMap = {};
 
   @override
@@ -62,9 +58,6 @@ mixin DiContainerImplCopyParentMixin on DiContainerImpl {
 }
 
 mixin DiContainerImplLinkParentMixin on DiContainerImpl {
-  @override
-  final Map<Type, DiEntity> _registeredMap = {};
-
   @override
   T? _lookUp<T>({required Object? param1, required Object? param2}) =>
       _parent?.maybeGet<T>(param1: param1, param2: param2);
