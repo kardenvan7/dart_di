@@ -133,12 +133,7 @@ abstract interface class DiRegistrar {
     bool allowConsequentGetCalls = true,
     FutureOr Function(T)? dispose,
   });
-}
 
-/// An interface for registering dependencies inside of a asynchronous
-/// container.
-///
-abstract interface class DiRegistrarAsync implements DiRegistrar {
   /// Asynchronously registers a singleton of entity of type [T].
   ///
   /// Each call of [DiGetter.get] will return the same [instance].

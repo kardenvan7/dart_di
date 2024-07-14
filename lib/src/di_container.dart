@@ -1,19 +1,18 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'dart_di_config.dart';
+import 'di_entity.dart';
 import 'di_retriever.dart';
 import 'di_registrar.dart';
+import 'di_inheritance_type.dart';
 
-part 'di_inheritance_type.dart';
 part 'implementation.dart';
 part 'inheritance_mixins.dart';
-part 'di_entity.dart';
 
 /// A class that is used for registering, containing and providing
 /// entities via [type].
 ///
-sealed class DiContainer implements DiRegistrarAsync, DiRetriever {
+sealed class DiContainer implements DiRegistrar, DiRetriever {
   /// A class that is used for registering, containing and providing
   /// entities via [type].
   ///
