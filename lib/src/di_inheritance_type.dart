@@ -1,5 +1,3 @@
-part of 'di_container.dart';
-
 /// The types of container inheritance behaviour.
 ///
 enum DiInheritanceType {
