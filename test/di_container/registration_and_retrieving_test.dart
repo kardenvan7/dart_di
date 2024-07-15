@@ -86,8 +86,8 @@ void main() {
             ),
           );
 
-          final instance1 = await uut.get<SimpleClass>();
-          final instance2 = await uut.get<SimpleClass>();
+          final instance1 = uut.get<SimpleClass>();
+          final instance2 = uut.get<SimpleClass>();
 
           expect(instance1 == instance2, isTrue);
         },
@@ -147,7 +147,7 @@ void main() {
 
           await uut.getAsync<SimpleClass>();
 
-          expect(uut.get<SimpleClass>(), isInstanceOf<SimpleClass>());
+          expect(uut.get<SimpleClass>(), isA<SimpleClass>());
         },
       );
 

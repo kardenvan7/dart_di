@@ -4,8 +4,8 @@ version: 0.0.2
 repository: https://github.com/kardenvan7/dart_di
 
 environment:
-  sdk: ^3.3.1
+  sdk: ^3.0.0
 
 dev_dependencies:
-  lints: ^3.0.0
+  lints: ^4.0.0
   test: ^1.24.0
