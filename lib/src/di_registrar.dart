@@ -133,8 +133,10 @@ abstract interface class DiRegistrar {
     bool allowConsequentGetCalls = true,
     FutureOr Function(T)? dispose,
   });
+}
 
-  /// Asynchronously registers a singleton of entity of type [T].
+abstract class DiRegistrarAsync implements DiRegistrar {
+  /// Registers an asynhronously initializable singleton of entity of type [T].
   ///
   /// Each call of [DiGetter.get] will return the same [instance].
   ///
@@ -142,7 +144,7 @@ abstract interface class DiRegistrar {
   /// destroyed. Usually used for disposing of the resources created by the
   /// registered instance.
   ///
-  Future<void> registerSingletonAsync<T>(
+  void registerSingletonAsync<T>(
     Future<T> Function() callback, {
     FutureOr Function(T)? dispose,
   });

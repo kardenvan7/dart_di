@@ -8,6 +8,7 @@ void main() {
     'Registration and retrieval',
     () {
       DiContainer getUut() => DiContainer('');
+      DiContainerAsync getAsyncUut() => DiContainerAsync('');
 
       test(
         'Factory registration returns new instance',
@@ -15,6 +16,7 @@ void main() {
           final uut = getUut();
 
           uut.registerFactory(() => SimpleClass());
+          uut.initialize();
 
           final instance1 = uut.get<SimpleClass>();
           final instance2 = uut.get<SimpleClass>();
@@ -29,6 +31,7 @@ void main() {
           final uut = getUut();
 
           uut.registerSingleton(SimpleClass());
+          uut.initialize();
 
           final instance1 = uut.get<SimpleClass>();
           final instance2 = uut.get<SimpleClass>();
@@ -43,6 +46,7 @@ void main() {
           final uut = getUut();
 
           uut.registerLazySingleton(() => SimpleClass());
+          uut.initialize();
 
           final instance1 = uut.get<SimpleClass>();
           final instance2 = uut.get<SimpleClass>();
@@ -61,6 +65,7 @@ void main() {
           uut.registerLazySingleton(
             () => InstantiableClass(() => instancesCreated++),
           );
+          uut.initialize();
 
           expect(instancesCreated, 0);
 
@@ -77,14 +82,15 @@ void main() {
       test(
         'Singleton async registration returns same instance',
         () async {
-          final uut = getUut();
+          final uut = getAsyncUut();
 
-          await uut.registerSingletonAsync(
+          uut.registerSingletonAsync(
             () async => Future.delayed(
               const Duration(milliseconds: 100),
               () => SimpleClass(),
             ),
           );
+          await uut.initialize();
 
           final instance1 = uut.get<SimpleClass>();
           final instance2 = uut.get<SimpleClass>();
@@ -104,6 +110,7 @@ void main() {
               () => SimpleClass(),
             ),
           );
+          uut.initialize();
 
           final instance1 = await uut.getAsync<SimpleClass>();
           final instance2 = await uut.getAsync<SimpleClass>();
@@ -123,6 +130,7 @@ void main() {
               () => SimpleClass(),
             ),
           );
+          uut.initialize();
 
           final instance1 = await uut.getAsync<SimpleClass>();
           final instance2 = await uut.getAsync<SimpleClass>();
@@ -142,6 +150,7 @@ void main() {
               () => SimpleClass(),
             ),
           );
+          uut.initialize();
 
           expect(uut.get<SimpleClass>, throwsException);
 
@@ -155,6 +164,7 @@ void main() {
         '"get" throws an exception when type is not registered',
         () {
           final uut = getUut();
+          uut.initialize();
 
           expect(uut.get<SimpleClass>, throwsException);
         },
@@ -165,6 +175,7 @@ void main() {
         () async {
           final uut = getUut();
           uut.registerFactoryAsync(() async => SimpleClass());
+          uut.initialize();
 
           expect(uut.get<SimpleClass>, throwsException);
         },
@@ -175,6 +186,7 @@ void main() {
         () async {
           final uut = getUut();
           uut.registerLazySingletonAsync(() async => SimpleClass());
+          uut.initialize();
 
           expect(uut.get<SimpleClass>, throwsException);
         },
@@ -186,6 +198,7 @@ void main() {
           final uut = getUut();
 
           uut.registerFactory(() => SimpleClass());
+          uut.initialize();
 
           final instance1 = await uut.getAsync<SimpleClass>();
 
@@ -199,6 +212,7 @@ void main() {
           final uut = getUut();
 
           uut.registerSingleton(SimpleClass());
+          uut.initialize();
 
           final instance1 = await uut.getAsync<SimpleClass>();
 
@@ -212,6 +226,7 @@ void main() {
           final uut = getUut();
 
           uut.registerLazySingleton(() => SimpleClass());
+          uut.initialize();
 
           final instance1 = await uut.getAsync<SimpleClass>();
 
@@ -223,6 +238,7 @@ void main() {
         '"getAsync" throws an exception when type is not registered',
         () {
           final uut = getUut();
+          uut.initialize();
 
           expect(uut.getAsync<SimpleClass>, throwsException);
         },
@@ -232,6 +248,8 @@ void main() {
         '"maybeGet" returns null when type is not registered',
         () {
           final uut = getUut();
+          uut.initialize();
+
           final result = uut.maybeGet<SimpleClass>();
 
           expect(result, isNull);
@@ -242,6 +260,8 @@ void main() {
         '"maybeGetAsync" returns null when type is not registered',
         () async {
           final uut = getUut();
+          uut.initialize();
+
           final result = await uut.maybeGetAsync<SimpleClass>();
 
           expect(result, isNull);

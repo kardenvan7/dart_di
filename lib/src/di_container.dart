@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'dart_di_config.dart';
 import 'di_entity.dart';
@@ -10,11 +11,11 @@ part 'implementation.dart';
 part 'inheritance_mixins.dart';
 
 /// A class that is used for registering, containing and providing
-/// entities via [type].
+/// entities via type.
 ///
-sealed class DiContainer implements DiRegistrar, DiRetriever {
+sealed class DiContainer implements DiContainerBase {
   /// A class that is used for registering, containing and providing
-  /// entities via [type].
+  /// entities via type.
   ///
   /// [name] - name of the container. Primarily used in debugging functions for
   /// better identification of each container.
@@ -28,20 +29,36 @@ sealed class DiContainer implements DiRegistrar, DiRetriever {
   factory DiContainer(
     String name, {
     DiInheritanceType? inheritanceType,
-    DiContainer? parent,
+    DiContainerBase? parent,
   }) = DiContainerImpl;
 
-  /// A container's name. Useful for debugging purposes.
+  /// Initializes the container, after which it is possible to retrieve
+  /// registered entities from it.
   ///
-  String get name;
+  void initialize();
+}
 
-  /// A list of names of all containers starting from this one up to the top.
+sealed class DiContainerAsync implements DiContainerBase, DiRegistrarAsync {
+  /// A class that is used for registering, containing and providing
+  /// entities via type.
   ///
-  /// Useful for debugging purposes.
+  /// [name] - name of the container. Primarily used in debugging functions for
+  /// better identification of each container.
   ///
-  List<String> get hierarchy;
+  /// [inheritanceType] - a type of inheritance which will be applied to the
+  /// current container. See [DiInheritanceType] for more information.
+  ///
+  /// [parent] - a parent container which entities will be available via
+  /// this container, if not overshadowed.
+  ///
+  factory DiContainerAsync(
+    String name, {
+    DiInheritanceType? inheritanceType,
+    DiContainerBase? parent,
+  }) = DiContainerAsyncImpl;
 
-  /// Releases resources and erases registered entities inside of the container.
+  /// Initializes the container, after which it is possible to retrieve
+  /// registered entities from it.
   ///
-  Future<void> close();
+  Future<void> initialize();
 }

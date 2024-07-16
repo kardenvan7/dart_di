@@ -1,21 +1,8 @@
-import 'dart:developer';
-
 import 'package:dart_di/dart_di.dart' as dart_di;
 import 'package:dart_di/src/di_container.dart';
 
-void main(List<String> arguments) async {
-  final diContainer = await _setupDi();
-
-  final component1 = diContainer.get<_Clazz1>();
-  final component4 = await diContainer.getAsync<_Clazz4>();
-
-  log(
-    'Components $component1, $component4 and others have been registered and retrieved successfully',
-  );
-}
-
-Future<dart_di.DiContainer> _setupDi() async {
-  final container = DiContainer('global_scope');
+Future<dart_di.DiContainerAsync> _setupDi() async {
+  final container = DiContainerAsync('global_scope');
 
   container
     ..registerFactory<_Clazz1>(() => _Clazz1())
@@ -26,13 +13,18 @@ Future<dart_di.DiContainer> _setupDi() async {
     )
     ..registerLazySingletonAsync<_Clazz5>(
       () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz5()),
+    )
+    ..registerSingletonAsync<_Clazz6>(
+      () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz6()),
     );
 
-  await container.registerSingletonAsync<_Clazz6>(
-    () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz6()),
-  );
+  await container.initialize();
 
   return container;
+}
+
+final class CustomDiContainer extends dart_di.DiContainerBase {
+  CustomDiContainer(super.name);
 }
 
 class _Clazz1 {}

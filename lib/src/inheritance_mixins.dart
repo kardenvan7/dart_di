@@ -1,6 +1,6 @@
 part of 'di_container.dart';
 
-mixin DiContainerImplCopyParentMixin on DiContainerImpl {
+base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
   final Map<Type, DiEntity> _directlyRegisteredMap = {};
 
   @override
@@ -19,19 +19,19 @@ mixin DiContainerImplCopyParentMixin on DiContainerImpl {
 
   @override
   void _registerEntity<T>(DiEntity<T> entity) {
-    super._registerEntity(entity);
     _directlyRegisteredMap[T] = entity;
+    super._registerEntity(entity);
   }
 
   @override
   bool _isRegisteredInAncestors<T>() =>
       _getFirstNonCopyAncestor()?._isRegisteredInAncestors<T>() ?? false;
 
-  DiContainerImpl? _getFirstNonCopyAncestor() {
-    DiContainerImpl? nonCopyAncestor;
+  DiContainerBase? _getFirstNonCopyAncestor() {
+    DiContainerBase? nonCopyAncestor;
 
     visitAncestors((ancestor) {
-      if (ancestor is! DiContainerImplCopyParentMixin) {
+      if (ancestor is! DiContainerBaseCopyParentMixin) {
         nonCopyAncestor = ancestor;
         return false;
       }
@@ -57,7 +57,7 @@ mixin DiContainerImplCopyParentMixin on DiContainerImpl {
   }
 }
 
-mixin DiContainerImplLinkParentMixin on DiContainerImpl {
+base mixin DiContainerBaseLinkParentMixin on DiContainerBase {
   @override
   T? _lookUp<T>({required Object? param1, required Object? param2}) =>
       _parent?.maybeGet<T>(param1: param1, param2: param2);

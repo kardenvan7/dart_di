@@ -22,6 +22,7 @@ void main() {
             () {
               final parent = getUut();
               parent.registerSingleton<SimpleClass>(SimpleClass());
+              parent.initialize();
 
               final uut = getUut(parent: parent);
 
@@ -49,10 +50,12 @@ void main() {
               final parent = getUut(name: 'parent');
               final parentSingleton = SimpleClass();
               parent.registerSingleton<SimpleClass>(parentSingleton);
+              parent.initialize();
 
               final uut = getUut(parent: parent);
               final uutSingleton = SimpleClass();
-              parent.registerSingleton<SimpleClass>(uutSingleton);
+              uut.registerSingleton<SimpleClass>(uutSingleton);
+              uut.initialize();
 
               expect(uut.get<SimpleClass>() == uutSingleton, isTrue);
               expect(uut.get<SimpleClass>() == parentSingleton, isFalse);
@@ -76,6 +79,7 @@ void main() {
             () {
               final parent = getUut();
               parent.registerSingleton<SimpleClass>(SimpleClass());
+              parent.initialize();
 
               final uut = getUut(parent: parent);
 
@@ -103,10 +107,12 @@ void main() {
               final parent = getUut(name: 'parent');
               final parentSingleton = SimpleClass();
               parent.registerSingleton<SimpleClass>(parentSingleton);
+              parent.initialize();
 
               final uut = getUut(parent: parent);
               final uutSingleton = SimpleClass();
-              parent.registerSingleton<SimpleClass>(uutSingleton);
+              uut.registerSingleton<SimpleClass>(uutSingleton);
+              uut.initialize();
 
               expect(uut.get<SimpleClass>() == uutSingleton, isTrue);
               expect(uut.get<SimpleClass>() == parentSingleton, isFalse);

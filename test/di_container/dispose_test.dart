@@ -1,4 +1,5 @@
 import 'package:dart_di/dart_di.dart';
+import 'package:dart_di/src/di_container.dart';
 import 'package:test/test.dart';
 
 import '../util_classes.dart';
@@ -8,6 +9,7 @@ void main() {
     'Dispose',
     () {
       DiContainer getUut() => DiContainer('');
+      DiContainerAsync getAsyncUut() => DiContainerAsync('');
 
       test(
         'Singleton is disposed',
@@ -20,6 +22,7 @@ void main() {
             DisposableClass(() => isDisposed = true),
             dispose: (instance) => instance.dispose(),
           );
+          uut.initialize();
 
           expect(isDisposed, isFalse);
 
@@ -40,6 +43,7 @@ void main() {
             () => DisposableClass(() => isDisposed = true),
             dispose: (instance) => instance.dispose(),
           );
+          uut.initialize();
 
           // Needed for instance creation
           uut.get<DisposableClass>();
@@ -55,17 +59,19 @@ void main() {
       test(
         'Singleton async is disposed',
         () async {
-          final uut = getUut();
+          final uut = getAsyncUut();
 
           bool isDisposed = false;
 
-          await uut.registerSingletonAsync(
+          uut.registerSingletonAsync(
             () async => Future.delayed(
               const Duration(milliseconds: 100),
               () => DisposableClass(() => isDisposed = true),
             ),
             dispose: (instance) => instance.dispose(),
           );
+
+          await uut.initialize();
 
           expect(isDisposed, isFalse);
 
@@ -89,6 +95,7 @@ void main() {
             ),
             dispose: (instance) => instance.dispose(),
           );
+          uut.initialize();
 
           // Needed for instance creation
           await uut.getAsync<DisposableClass>();
