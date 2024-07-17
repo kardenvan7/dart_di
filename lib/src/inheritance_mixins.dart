@@ -1,7 +1,8 @@
 part of 'di_container.dart';
 
 base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
-  final Map<Type, DiEntity> _directlyRegisteredMap = {};
+  @override
+  Map<Type, DiEntity> _registeredMap = {};
 
   @override
   T? _lookUp<T>({
@@ -18,19 +19,44 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
       _parent?._lookUpAsync<T>(param1: param1, param2: param2);
 
   @override
-  void _registerEntity<T>(DiEntity<T> entity) {
-    _directlyRegisteredMap[T] = entity;
-    super._registerEntity(entity);
+  bool _isRegisteredInAncestors<T>() {
+    _assertInitialization();
+    return _getFirstNonCopyAncestor()?._isRegisteredInAncestors<T>() ?? false;
   }
 
   @override
-  bool _isRegisteredInAncestors<T>() =>
-      _getFirstNonCopyAncestor()?._isRegisteredInAncestors<T>() ?? false;
+  T? maybeGet<T>({Object? param1, Object? param2}) {
+    _assertInitialization();
+    return super.maybeGet(param1: param1, param2: param2);
+  }
+
+  @override
+  Future<T>? maybeGetAsync<T>({Object? param1, Object? param2}) {
+    _assertInitialization();
+    return super.maybeGetAsync(param1: param1, param2: param2);
+  }
+
+  @override
+  void _onInitializationStart() {
+    if (_parent != null) {
+      _parent!._seal();
+      _registeredMap = {..._parent!._registeredMap};
+    }
+  }
+
+  void _assertInitialization() {
+    assert(
+      _isInitialized,
+      'Container "$name" with inheritance type "copyParent" has not been initialized yet. '
+      'Thus, "get", "getAsync", "maybeGet", "maybeGetAsync" and "isRegistered" methods '
+      'will not work properly and are forbidden from use.',
+    );
+  }
 
   DiContainerBase? _getFirstNonCopyAncestor() {
     DiContainerBase? nonCopyAncestor;
 
-    visitAncestors((ancestor) {
+    _visitAncestors((ancestor) {
       if (ancestor is! DiContainerBaseCopyParentMixin) {
         nonCopyAncestor = ancestor;
         return false;
@@ -41,23 +67,12 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
 
     return nonCopyAncestor;
   }
-
-  @override
-  String toString() {
-    return 'DiContainer('
-        '$name, '
-        '[${_directlyRegisteredMap.keys.join(', ')}]'
-        ')';
-  }
-
-  @override
-  Future<void> close() {
-    _directlyRegisteredMap.clear();
-    return super.close();
-  }
 }
 
 base mixin DiContainerBaseLinkParentMixin on DiContainerBase {
+  @override
+  final Map<Type, DiEntity> _registeredMap = {};
+
   @override
   T? _lookUp<T>({required Object? param1, required Object? param2}) =>
       _parent?.maybeGet<T>(param1: param1, param2: param2);
@@ -69,14 +84,15 @@ base mixin DiContainerBaseLinkParentMixin on DiContainerBase {
   }) =>
       _parent?.maybeGetAsync<T>(param1: param1, param2: param2);
 
-  @override
-  bool _isRegisteredInAncestors<T>() => _parent?.isRegistered<T>() ?? false;
+  void _onInitializationStart() {
+    if (_parent != null && !_parent!.isInitialized) {
+      log(
+        'Container "name" is being initialized, but it\'s parent ${_parent!.name} it not initilized. '
+        'It is advised to initialize parent containers prior to their children to avoid potential bugs.',
+      );
+    }
+  }
 
   @override
-  String toString() {
-    return 'DiContainer('
-        '$name, '
-        '[${_registeredMap.keys.join(', ')}]'
-        ')';
-  }
+  bool _isRegisteredInAncestors<T>() => _parent?.isRegistered<T>() ?? false;
 }

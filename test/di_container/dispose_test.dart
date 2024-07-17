@@ -107,6 +107,30 @@ void main() {
           expect(isDisposed, isTrue);
         },
       );
+
+      test(
+        'All entities are cleared from container upon closing',
+        () async {
+          final uut = getUut();
+          uut
+            ..registerFactory<SimpleClass>(() => SimpleClass())
+            ..registerLazySingleton<InstantiableClass>(
+              () => InstantiableClass(() {}),
+            )
+            ..registerSingleton<DisposableClass>(DisposableClass(() {}))
+            ..initialize();
+
+          expect(uut.isRegistered<SimpleClass>(), isTrue);
+          expect(uut.isRegistered<InstantiableClass>(), isTrue);
+          expect(uut.isRegistered<DisposableClass>(), isTrue);
+
+          await uut.close();
+
+          expect(uut.isRegistered<SimpleClass>(), isFalse);
+          expect(uut.isRegistered<InstantiableClass>(), isFalse);
+          expect(uut.isRegistered<DisposableClass>(), isFalse);
+        },
+      );
     },
   );
 }

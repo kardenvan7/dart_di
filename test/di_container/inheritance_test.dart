@@ -25,6 +25,7 @@ void main() {
               parent.initialize();
 
               final uut = getUut(parent: parent);
+              uut.initialize();
 
               expect(uut.isRegistered<SimpleClass>(), isTrue);
             },
@@ -36,6 +37,7 @@ void main() {
               final parentOfParent = getUut(name: 'parentOfParent');
               final parent = getUut(name: 'parent', parent: parentOfParent);
               final uut = getUut(parent: parent);
+              uut.initialize();
 
               expect(uut.hierarchy.length, 3);
               expect(uut.hierarchy.first, uut.name);
@@ -82,6 +84,7 @@ void main() {
               parent.initialize();
 
               final uut = getUut(parent: parent);
+              uut.initialize();
 
               expect(uut.isRegistered<SimpleClass>(), isTrue);
             },
@@ -116,6 +119,38 @@ void main() {
 
               expect(uut.get<SimpleClass>() == uutSingleton, isTrue);
               expect(uut.get<SimpleClass>() == parentSingleton, isFalse);
+            },
+          );
+
+          test(
+            'Upon closing, only directly registered entities are erased',
+            () async {
+              final parent = getUut(name: 'parent');
+              final parentSingleton = InstantiableClass(() {});
+              parent
+                ..registerFactory<SimpleClass>(() => SimpleClass())
+                ..registerSingleton<InstantiableClass>(parentSingleton)
+                ..initialize();
+
+              final uut = getUut(parent: parent);
+              final uutSingleton = InstantiableClass(() {});
+              uut
+                ..registerSingleton<InstantiableClass>(uutSingleton)
+                ..registerFactory<DisposableClass>(() => DisposableClass(() {}))
+                ..initialize();
+
+              expect(uut.maybeGet<SimpleClass>(), isA<SimpleClass>());
+              expect(uut.maybeGet<InstantiableClass>(), equals(uutSingleton));
+              expect(uut.maybeGet<DisposableClass>(), isA<DisposableClass>());
+
+              await uut.close();
+
+              expect(parent.maybeGet<SimpleClass>(), isA<SimpleClass>());
+              expect(
+                parent.maybeGet<InstantiableClass>(),
+                equals(parentSingleton),
+              );
+              expect(parent.maybeGet<DisposableClass>(), isNull);
             },
           );
         },
