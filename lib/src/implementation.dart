@@ -23,7 +23,7 @@ final class DiContainerImplLinkParent extends DiContainerImpl
   DiContainerImplLinkParent(super.name, {super.parent}) : super._();
 }
 
-sealed class DiContainerAsyncImpl extends DiContainerBase
+abstract final class DiContainerAsyncImpl extends DiContainerBase
     implements DiContainerAsync {
   DiContainerAsyncImpl._(
     super.name, {
@@ -81,7 +81,8 @@ sealed class DiContainerAsyncImpl extends DiContainerBase
   }
 }
 
-sealed class DiContainerImpl extends DiContainerBase implements DiContainer {
+abstract final class DiContainerImpl extends DiContainerBase
+    implements DiContainer {
   DiContainerImpl._(
     super.name, {
     super.parent,
@@ -125,7 +126,7 @@ sealed class DiContainerImpl extends DiContainerBase implements DiContainer {
   }
 }
 
-abstract base class DiContainerBase implements DiRegistrar, DiRetriever {
+abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
   DiContainerBase(
     this.name, {
     DiContainerBase? parent,

@@ -13,7 +13,7 @@ part 'inheritance_mixins.dart';
 /// A class that is used for registering, containing and providing
 /// entities via type.
 ///
-sealed class DiContainer implements DiContainerBase {
+abstract final class DiContainer implements DiContainerBase {
   /// A class that is used for registering, containing and providing
   /// entities via type.
   ///
@@ -38,7 +38,8 @@ sealed class DiContainer implements DiContainerBase {
   void initialize();
 }
 
-sealed class DiContainerAsync implements DiContainerBase, DiRegistrarAsync {
+abstract final class DiContainerAsync
+    implements DiContainerBase, DiRegistrarAsync {
   /// A class that is used for registering, containing and providing
   /// entities via type.
   ///

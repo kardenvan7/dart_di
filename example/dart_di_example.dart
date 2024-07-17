@@ -29,10 +29,6 @@ Future<dart_di.DiContainerAsync> _setupDi() async {
   return container;
 }
 
-final class CustomDiContainer extends dart_di.DiContainerBase {
-  CustomDiContainer(super.name);
-}
-
 class _Clazz1 {}
 
 class _Clazz2 {}
