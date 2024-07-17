@@ -27,13 +27,13 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
   @override
   T? maybeGet<T>({Object? param1, Object? param2}) {
     _assertInitialization();
-    return super.maybeGet(param1: param1, param2: param2);
+    return super.maybeGet<T>(param1: param1, param2: param2);
   }
 
   @override
   Future<T>? maybeGetAsync<T>({Object? param1, Object? param2}) {
     _assertInitialization();
-    return super.maybeGetAsync(param1: param1, param2: param2);
+    return super.maybeGetAsync<T>(param1: param1, param2: param2);
   }
 
   @override
