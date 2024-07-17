@@ -7,5 +7,6 @@ environment:
   sdk: ^3.0.0
 
 dev_dependencies:
+  get_it: ^7.7.0
   lints: ^4.0.0
   test: ^1.24.0
