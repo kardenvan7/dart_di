@@ -1,6 +1,12 @@
 import 'package:dart_di/dart_di.dart' as dart_di;
 import 'package:dart_di/src/di_container.dart';
 
+void main() async {
+  final container = await _setupDi();
+
+  print(container);
+}
+
 Future<dart_di.DiContainerAsync> _setupDi() async {
   final container = DiContainerAsync('global_scope');
 
