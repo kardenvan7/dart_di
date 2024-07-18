@@ -1,3 +1,4 @@
+// ignore_for_file: unused_local_variable
 import 'package:dart_di/dart_di.dart';
 import 'package:get_it/get_it.dart';
 import 'package:test/test.dart';
@@ -5,7 +6,7 @@ import 'package:test/test.dart';
 void main() {
   const List<int> containerCounts = [
     1,
-    1,
+    2,
     5,
     10,
     20,
@@ -16,7 +17,7 @@ void main() {
     100,
     250,
     500,
-    1000
+    1000,
   ];
 
   DiContainer prepareContainer({
@@ -42,9 +43,11 @@ void main() {
   GetIt prepareGetIt() {
     final getIt = GetIt.asNewInstance();
 
-    return getIt
+    getIt
       ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
       ..registerSingleton<_ValueClass2>(_ValueClass2('2'));
+
+    return getIt;
   }
 
   group(

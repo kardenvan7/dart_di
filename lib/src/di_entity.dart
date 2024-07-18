@@ -78,9 +78,8 @@ final class DiEntityLazySingleton<T> implements DiEntity<T>, Disposable {
   final _DisposeCallback<T>? _disposer;
 
   T? _instance;
-  T _getInstance({required Object? param1, required Object? param2}) {
-    return _instance ??= _factory(param1: param1, param2: param2);
-  }
+  T _getInstance({required Object? param1, required Object? param2}) =>
+      _instance ??= _factory(param1: param1, param2: param2);
 
   @override
   T get({required Object? param1, required Object? param2}) =>
