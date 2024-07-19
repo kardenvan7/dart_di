@@ -3,6 +3,8 @@ import 'package:dart_di/dart_di.dart';
 import 'package:get_it/get_it.dart';
 import 'package:test/test.dart';
 
+import '../utils.dart';
+
 void main() {
   const List<int> containerCounts = [
     1,
@@ -20,11 +22,31 @@ void main() {
     1000,
   ];
 
-  DiContainer prepareContainer({
+  DiContainerNonInh prepareNonInhContainer({
     required DiInheritanceType inheritanceType,
     int containersAmount = 1,
   }) {
-    DiContainer container = DiContainer('0')
+    DiContainerNonInh container = DiContainerNonInh('0', inheritanceType)
+      ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
+      ..registerSingleton<_ValueClass2>(_ValueClass2('2'))
+      ..initialize();
+
+    for (int i = 1; i < containersAmount; i++) {
+      container = DiContainerNonInh(
+        '$i',
+        inheritanceType,
+        parent: container,
+      )..initialize();
+    }
+
+    return container;
+  }
+
+  DiContainerBase prepareContainer({
+    required DiInheritanceType inheritanceType,
+    int containersAmount = 1,
+  }) {
+    DiContainerBase container = DiContainer('0')
       ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
       ..registerSingleton<_ValueClass2>(_ValueClass2('2'))
       ..initialize();
@@ -64,27 +86,26 @@ void main() {
               test(
                 'Containers count: $containerCount',
                 () {
-                  final List<String> prints = [];
-
-                  void log(Object? message) {
-                    prints.add(message.toString());
-                  }
-
-                  void runComparisonTest(DiContainer container, GetIt getIt) {
-                    const repeatCount = 2;
+                  void runComparisonTest(
+                    DiContainerBase container,
+                    DiContainerNonInh nonInhContainer,
+                    GetIt getIt,
+                  ) {
+                    const repeatCount = 1;
 
                     for (int i = 0; i < repeatCount; i++) {
-                      final sw = Stopwatch()..start();
-                      final value = container.get<_ValueClass1>();
-                      log('FluDi: ${sw.elapsedMicroseconds}');
-                      sw.stop();
+                      measure(() => container.get<_ValueClass2>(), 'FluDi');
                     }
 
                     for (int i = 0; i < repeatCount; i++) {
-                      final sw1 = Stopwatch()..start();
-                      final value1 = getIt.get<_ValueClass1>();
-                      log('GetIt: ${sw1.elapsedMicroseconds}');
-                      sw1.stop();
+                      measure(
+                        () => nonInhContainer.get<_ValueClass2>(),
+                        'FluDi Inh',
+                      );
+                    }
+
+                    for (int i = 0; i < repeatCount; i++) {
+                      measure(() => getIt.get<_ValueClass2>(), 'GetIt');
                     }
                   }
 
@@ -92,13 +113,13 @@ void main() {
                     inheritanceType: inheritanceType,
                     containersAmount: containerCount,
                   );
+                  final nonInhContainer = prepareNonInhContainer(
+                    inheritanceType: inheritanceType,
+                    containersAmount: containerCount,
+                  );
                   final getIt = prepareGetIt();
 
-                  runComparisonTest(container, getIt);
-
-                  for (final printVal in prints) {
-                    print(printVal);
-                  }
+                  runComparisonTest(container, nonInhContainer, getIt);
                 },
               );
             }

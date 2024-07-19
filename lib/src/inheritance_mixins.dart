@@ -2,9 +2,6 @@ part of 'di_container.dart';
 
 base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
   @override
-  Map<Type, DiEntity> _registeredMap = {};
-
-  @override
   T? _lookUp<T>({
     required Object? param1,
     required Object? param2,
@@ -40,7 +37,7 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
   void _onInitializationStart() {
     if (_parent != null) {
       _parent!._seal();
-      _registeredMap = {..._parent!._registeredMap};
+      _registeredMap.addAll(_parent!._registeredMap);
     }
   }
 
@@ -71,9 +68,6 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBase {
 
 base mixin DiContainerBaseLinkParentMixin on DiContainerBase {
   @override
-  final Map<Type, DiEntity> _registeredMap = {};
-
-  @override
   T? _lookUp<T>({required Object? param1, required Object? param2}) =>
       _parent?.maybeGet<T>(param1: param1, param2: param2);
 
@@ -86,8 +80,8 @@ base mixin DiContainerBaseLinkParentMixin on DiContainerBase {
 
   void _onInitializationStart() {
     if (_parent != null && !_parent!.isInitialized) {
-      log(
-        'Container "name" is being initialized, but it\'s parent ${_parent!.name} it not initilized. '
+      print(
+        'Container "$name" is being initialized, but it\'s parent ${_parent!.name} it not initilized. '
         'It is advised to initialize parent containers prior to their children to avoid potential bugs.',
       );
     }

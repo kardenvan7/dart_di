@@ -1,7 +1,7 @@
 import 'package:dart_di/dart_di.dart';
 import 'package:test/test.dart';
 
-import '../util_classes.dart';
+import '../utils.dart';
 
 void main() {
   group(

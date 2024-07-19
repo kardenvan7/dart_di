@@ -1,112 +1,127 @@
-part of 'di_container.dart';
+import 'dart:async';
+import 'dart:collection';
+
+import 'package:dart_di/dart_di.dart';
+
+import 'di_entity.dart';
+import 'di_inheritance_type.dart';
+import 'di_registrar.dart';
+import 'di_retriever.dart';
 
 typedef _VoidCallback = void Function();
 typedef _FutureOrVoidCallback = FutureOr<void> Function();
 
-final class DiContainerAsyncImplCopyParent extends DiContainerAsyncImpl
-    with DiContainerBaseCopyParentMixin {
-  DiContainerAsyncImplCopyParent(super.name, {super.parent}) : super._();
-}
+abstract interface class DiContainerNonInh
+    implements DiRegistrarAsync, DiRetriever {
+  factory DiContainerNonInh(
+    String name,
+    DiInheritanceType inheritanceType, {
+    DiContainerNonInh? parent,
+  }) = _DiContainerNonInhImpl;
 
-final class DiContainerAsyncImplLinkParent extends DiContainerAsyncImpl
-    with DiContainerBaseLinkParentMixin {
-  DiContainerAsyncImplLinkParent(super.name, {super.parent}) : super._();
-}
+  String get name;
 
-final class DiContainerImplCopyParent extends DiContainerImpl
-    with DiContainerBaseCopyParentMixin {
-  DiContainerImplCopyParent(super.name, {super.parent}) : super._();
-}
+  List<String> get hierarchy;
 
-final class DiContainerImplLinkParent extends DiContainerImpl
-    with DiContainerBaseLinkParentMixin {
-  DiContainerImplLinkParent(super.name, {super.parent}) : super._();
-}
+  DiInheritanceType get inheritanceType;
 
-abstract final class DiContainerAsyncImpl extends DiContainerBase
-    implements DiContainerAsync {
-  DiContainerAsyncImpl._(
-    super.name, {
-    super.parent,
+  DiContainerNonInh? get _parent;
+
+  HashMap<Type, DiEntity> get _registeredMap;
+
+  bool get isInitialized;
+
+  bool get isSealed;
+
+  bool get isClosed;
+
+  T? _lookUp<T>({required Object? param1, required Object? param2});
+
+  Future<T>? _lookUpAsync<T>({
+    required Object? param1,
+    required Object? param2,
   });
 
-  factory DiContainerAsyncImpl(
-    String name, {
-    DiInheritanceType? inheritanceType,
-    DiContainerBase? parent,
-  }) {
-    return switch (inheritanceType ?? DartDiConfig.defaultInheritanceType) {
-      DiInheritanceType.copyParent => DiContainerAsyncImplCopyParent(
-          name,
-          parent: parent,
+  bool _isRegisteredInAncestors<T>();
+
+  void _seal();
+
+  void initialize();
+
+  Future<void> initializeAsync();
+
+  Future<void> close();
+}
+
+final class _DiContainerNonInhImpl implements DiContainerNonInh {
+  _DiContainerNonInhImpl(
+    this.name,
+    this.inheritanceType, {
+    DiContainerNonInh? parent,
+  })  : assert(
+          parent == null || !parent.isClosed,
+          'Container "$name" received container "${parent.name}" as a parent, '
+          'but "${parent.name}" is already closed.',
         ),
-      DiInheritanceType.linkParent => DiContainerAsyncImplLinkParent(
-          name,
-          parent: parent,
-        ),
-    };
-  }
+        _parent = parent;
 
   @override
+  final String name;
+  @override
+  final DiContainerNonInh? _parent;
+  @override
+  final DiInheritanceType inheritanceType;
+  @override
+  final HashMap<Type, DiEntity> _registeredMap = HashMap<Type, DiEntity>();
+  final List<_FutureOrVoidCallback> _disposables = [];
   final List<_FutureOrVoidCallback> _registrationCallbacks = [];
 
   @override
-  Future<void> initialize() async {
-    _onInitializationStart();
+  bool get isInitialized => _isInitialized;
+  bool _isInitialized = false;
 
-    try {
-      for (final callback in _registrationCallbacks) {
-        await callback();
-      }
-      _isInitialized = true;
-    } catch (_, __) {
-      _registeredMap.clear();
-      _disposables.clear();
-    } finally {
-      _registrationCallbacks.clear();
-    }
+  @override
+  bool get isSealed => isInitialized;
+  set _isSealed(bool value) => _isInitialized = value;
+
+  @override
+  bool get isClosed => _isClosed;
+  bool _isClosed = false;
+
+  @override
+  List<String> get hierarchy {
+    final List<String> nameList = [name];
+
+    _visitAncestors((ancestor) {
+      nameList.add(ancestor.name);
+      return true;
+    });
+
+    return nameList;
   }
 
   @override
-  void registerSingletonAsync<T>(
-    Future<T> Function() callback, {
-    FutureOr Function(T p1)? dispose,
-  }) {
-    _addRegistration(() async {
-      final instance = await callback();
-      final entity = DiEntitySingleton<T>(instance, disposer: dispose);
-      if (dispose != null) _addDisposer(entity.dispose);
-      _registerEntity<T>(entity);
-    });
-  }
-}
-
-abstract final class DiContainerImpl extends DiContainerBase
-    implements DiContainer {
-  DiContainerImpl._(
-    super.name, {
-    super.parent,
-  });
-
-  factory DiContainerImpl(
-    String name, {
-    DiInheritanceType? inheritanceType,
-    DiContainerBase? parent,
-  }) {
-    return switch (inheritanceType ?? DartDiConfig.defaultInheritanceType) {
-      DiInheritanceType.copyParent => DiContainerImplCopyParent(
-          name,
-          parent: parent,
-        ),
-      DiInheritanceType.linkParent => DiContainerImplLinkParent(
-          name,
-          parent: parent,
-        ),
+  T? _lookUp<T>({required Object? param1, required Object? param2}) {
+    return switch (inheritanceType) {
+      DiInheritanceType.linkParent =>
+        _parent?.maybeGet<T>(param1: param1, param2: param2),
+      DiInheritanceType.copyParent =>
+        _parent?._lookUp<T>(param1: param1, param2: param2),
     };
   }
 
   @override
-  final List<_VoidCallback> _registrationCallbacks = [];
+  Future<T>? _lookUpAsync<T>({
+    required Object? param1,
+    required Object? param2,
+  }) {
+    return switch (inheritanceType) {
+      DiInheritanceType.linkParent =>
+        _parent?.maybeGetAsync<T>(param1: param1, param2: param2),
+      DiInheritanceType.copyParent =>
+        _parent?._lookUpAsync<T>(param1: param1, param2: param2),
+    };
+  }
 
   @override
   void initialize() {
@@ -124,60 +139,54 @@ abstract final class DiContainerImpl extends DiContainerBase
       _registrationCallbacks.clear();
     }
   }
-}
 
-abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
-  DiContainerBase(
-    this.name, {
-    DiContainerBase? parent,
-  })  : assert(
-          parent == null || !parent.isClosed,
-          'Container "$name" received container "${parent.name}" as a parent, '
-          'but "${parent.name}" is already closed.',
-        ),
-        _parent = parent;
+  @override
+  Future<void> initializeAsync() async {
+    _onInitializationStart();
 
-  /// A container's name. Useful for debugging purposes.
-  ///
-  final String name;
-  final DiContainerBase? _parent;
-  final HashMap<Type, DiEntity> _registeredMap = HashMap<Type, DiEntity>();
-  final List<_FutureOrVoidCallback> _disposables = [];
-
-  bool _isInitialized = false;
-  bool get isInitialized => _isInitialized;
-
-  set _isSealed(bool value) => _isInitialized = value;
-  bool get isSealed => isInitialized;
-
-  bool _isClosed = false;
-  bool get isClosed => _isClosed;
-
-  List<_VoidCallback> get _registrationCallbacks;
-
-  /// A list of names of all containers starting from this one up to the top.
-  ///
-  /// Useful for debugging purposes.
-  ///
-  List<String> get hierarchy {
-    final List<String> nameList = [name];
-
-    _visitAncestors((ancestor) {
-      nameList.add(ancestor.name);
-      return true;
-    });
-
-    return nameList;
+    try {
+      for (final callback in _registrationCallbacks) {
+        await callback();
+      }
+      _isInitialized = true;
+    } catch (_, __) {
+      _registeredMap.clear();
+      _disposables.clear();
+    } finally {
+      _registrationCallbacks.clear();
+    }
   }
 
-  void _onInitializationStart();
+  void _onInitializationStart() {
+    switch (inheritanceType) {
+      case DiInheritanceType.linkParent:
+        if (_parent != null && !_parent!.isInitialized) {
+          print(
+            'Container "name" is being initialized, but it\'s parent ${_parent!.name} it not initilized. '
+            'It is advised to initialize parent containers prior to their children to avoid potential bugs.',
+          );
+        }
+        break;
+      case DiInheritanceType.copyParent:
+        if (_parent != null) {
+          _parent!._seal();
+          _registeredMap.addAll(_parent!._registeredMap);
+        }
+        break;
+    }
+  }
 
-  T? _lookUp<T>({required Object? param1, required Object? param2});
-
-  Future<T>? _lookUpAsync<T>({
-    required Object? param1,
-    required Object? param2,
-  });
+  @override
+  bool _isRegisteredInAncestors<T>() {
+    switch (inheritanceType) {
+      case DiInheritanceType.linkParent:
+        return _parent?.isRegistered<T>() ?? false;
+      case DiInheritanceType.copyParent:
+        _assertInitialization();
+        return _getFirstNonCopyAncestor()?._isRegisteredInAncestors<T>() ??
+            false;
+    }
+  }
 
   @override
   void registerFactory<T>(T Function() callback) {
@@ -293,13 +302,32 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
   }
 
   @override
+  void registerSingletonAsync<T>(
+    Future<T> Function() callback, {
+    FutureOr Function(T p1)? dispose,
+  }) {
+    _addRegistration(() async {
+      final instance = await callback();
+      final entity = DiEntitySingleton<T>(instance, disposer: dispose);
+      if (dispose != null) _addDisposer(entity.dispose);
+      _registerEntity<T>(entity);
+    });
+  }
+
+  @override
   T get<T>({Object? param1, Object? param2}) {
     return maybeGet<T>() ??
-        (throw Exception('Type $T is not found in the provided factories map'));
+        (throw Exception(
+          'Type $T is not found in the provided factories map',
+        ));
   }
 
   @override
   T? maybeGet<T>({Object? param1, Object? param2}) {
+    if (inheritanceType == DiInheritanceType.copyParent) {
+      _assertInitialization();
+    }
+
     _informIfClosed();
     return _registeredMap[T]?.get(param1: param1, param2: param2) ??
         _lookUp<T>(param1: param1, param2: param2);
@@ -313,6 +341,10 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
 
   @override
   Future<T>? maybeGetAsync<T>({Object? param1, Object? param2}) {
+    if (inheritanceType == DiInheritanceType.copyParent) {
+      _assertInitialization();
+    }
+
     _informIfClosed();
     return _registeredMap[T]?.getAsync(param1: param1, param2: param2)
             as Future<T>? ??
@@ -325,6 +357,7 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
     return _registeredMap.containsKey(T) || _isRegisteredInAncestors<T>();
   }
 
+  @override
   void _seal() {
     // Not checking for "isSealed" since now it's implementation is equals to "isInitialized"
     if (!isInitialized) {
@@ -337,15 +370,13 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
     }
   }
 
-  void _visitAncestors(bool Function(DiContainerBase) callback) {
-    DiContainerBase? currentAncestor = _parent;
+  void _visitAncestors(bool Function(DiContainerNonInh) callback) {
+    DiContainerNonInh? currentAncestor = _parent;
 
     while (currentAncestor != null && callback(currentAncestor)) {
       currentAncestor = currentAncestor._parent;
     }
   }
-
-  bool _isRegisteredInAncestors<T>();
 
   void _addRegistration(_VoidCallback registrationCallback) {
     assert(
@@ -365,14 +396,39 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
   void _informIfClosed() {
     if (isClosed) {
       print(
-        'You\'re accessing an entity via container "$name" which is closed.'
-        'This might result in an unexpected behaviuor.',
+        'You\'re accessing an entity via container "$name" which is closed, '
+        'i.e. it\'s entities disposed and deleted. '
+        'This might result in an unexpected behaviour.',
       );
     }
   }
 
   Future<void> _disposeAll() =>
       Future.wait(_disposables.map((value) async => await value()));
+
+  void _assertInitialization() {
+    assert(
+      _isInitialized,
+      'Container "$name" with inheritance type "copyParent" has not been initialized yet. '
+      'Thus, "get", "getAsync", "maybeGet", "maybeGetAsync" and "isRegistered" methods '
+      'will not work properly and are forbidden from use.',
+    );
+  }
+
+  DiContainerNonInh? _getFirstNonCopyAncestor() {
+    DiContainerNonInh? nonCopyAncestor;
+
+    _visitAncestors((ancestor) {
+      if (ancestor.inheritanceType != DiInheritanceType.copyParent) {
+        nonCopyAncestor = ancestor;
+        return false;
+      }
+
+      return true;
+    });
+
+    return nonCopyAncestor;
+  }
 
   @override
   String toString() {
@@ -388,6 +444,7 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
 
   /// Releases resources and erases registered entities inside of the container.
   ///
+  @override
   Future<void> close() async {
     await _disposeAll();
     _registrationCallbacks.clear();
