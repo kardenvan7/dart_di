@@ -23,7 +23,7 @@ final class DiContainerImplLinkParent extends DiContainerImpl
   DiContainerImplLinkParent(super.name, {super.parent}) : super._();
 }
 
-abstract final class DiContainerAsyncImpl extends DiContainerBase
+abstract final class DiContainerAsyncImpl extends DiContainerBaseImpl
     implements DiContainerAsync {
   DiContainerAsyncImpl._(
     super.name, {
@@ -81,7 +81,7 @@ abstract final class DiContainerAsyncImpl extends DiContainerBase
   }
 }
 
-abstract final class DiContainerImpl extends DiContainerBase
+abstract final class DiContainerImpl extends DiContainerBaseImpl
     implements DiContainer {
   DiContainerImpl._(
     super.name, {
@@ -126,8 +126,8 @@ abstract final class DiContainerImpl extends DiContainerBase
   }
 }
 
-abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
-  DiContainerBase(
+abstract final class DiContainerBaseImpl implements DiContainerBase {
+  DiContainerBaseImpl(
     this.name, {
     DiContainerBase? parent,
   })  : assert(
@@ -139,26 +139,29 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
 
   /// A container's name. Useful for debugging purposes.
   ///
+  @override
   final String name;
+  @override
   final DiContainerBase? _parent;
+  @override
   final HashMap<Type, DiEntity> _registeredMap = HashMap<Type, DiEntity>();
   final List<_FutureOrVoidCallback> _disposables = [];
 
-  bool _isInitialized = false;
+  @override
   bool get isInitialized => _isInitialized;
+  bool _isInitialized = false;
 
-  set _isSealed(bool value) => _isInitialized = value;
+  @override
   bool get isSealed => isInitialized;
+  set _isSealed(bool value) => _isInitialized = value;
 
-  bool _isClosed = false;
+  @override
   bool get isClosed => _isClosed;
+  bool _isClosed = false;
 
   List<_VoidCallback> get _registrationCallbacks;
 
-  /// A list of names of all containers starting from this one up to the top.
-  ///
-  /// Useful for debugging purposes.
-  ///
+  @override
   List<String> get hierarchy {
     final List<String> nameList = [name];
 
@@ -171,13 +174,6 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
   }
 
   void _onInitializationStart();
-
-  T? _lookUp<T>({required Object? param1, required Object? param2});
-
-  Future<T>? _lookUpAsync<T>({
-    required Object? param1,
-    required Object? param2,
-  });
 
   @override
   void registerFactory<T>(T Function() callback) {
@@ -325,6 +321,7 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
     return _registeredMap.containsKey(T) || _isRegisteredInAncestors<T>();
   }
 
+  @override
   void _seal() {
     // Not checking for "isSealed" since now it's implementation is equals to "isInitialized"
     if (!isInitialized) {
@@ -344,8 +341,6 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
       currentAncestor = currentAncestor._parent;
     }
   }
-
-  bool _isRegisteredInAncestors<T>();
 
   void _addRegistration(_VoidCallback registrationCallback) {
     assert(
@@ -386,8 +381,7 @@ abstract final class DiContainerBase implements DiRegistrar, DiRetriever {
         ')';
   }
 
-  /// Releases resources and erases registered entities inside of the container.
-  ///
+  @override
   Future<void> close() async {
     await _disposeAll();
     _registrationCallbacks.clear();

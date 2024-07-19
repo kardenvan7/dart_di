@@ -26,15 +26,16 @@ void main() {
     required DiInheritanceType inheritanceType,
     int containersAmount = 1,
   }) {
-    DiContainerNonInh container = DiContainerNonInh('0', inheritanceType)
-      ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
-      ..registerSingleton<_ValueClass2>(_ValueClass2('2'))
-      ..initialize();
+    DiContainerNonInh container =
+        DiContainerNonInh('0', inheritanceType: inheritanceType)
+          ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
+          ..registerSingleton<_ValueClass2>(_ValueClass2('2'))
+          ..initialize();
 
     for (int i = 1; i < containersAmount; i++) {
       container = DiContainerNonInh(
         '$i',
-        inheritanceType,
+        inheritanceType: inheritanceType,
         parent: container,
       )..initialize();
     }

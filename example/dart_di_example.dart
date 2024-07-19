@@ -48,7 +48,7 @@ void main() async {
 DiContainerNonInh _setupContainer() {
   final container = DiContainerNonInh(
     'global_scope',
-    DiInheritanceType.copyParent,
+    inheritanceType: DiInheritanceType.copyParent,
   );
 
   container

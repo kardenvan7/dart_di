@@ -1,74 +1,23 @@
-import 'dart:async';
-import 'dart:collection';
+part of 'di_container.dart';
 
-import 'package:dart_di/dart_di.dart';
-
-import 'di_entity.dart';
-import 'di_inheritance_type.dart';
-import 'di_registrar.dart';
-import 'di_retriever.dart';
-
-typedef _VoidCallback = void Function();
-typedef _FutureOrVoidCallback = FutureOr<void> Function();
-
-abstract interface class DiContainerNonInh
-    implements DiRegistrarAsync, DiRetriever {
-  factory DiContainerNonInh(
-    String name,
-    DiInheritanceType inheritanceType, {
-    DiContainerNonInh? parent,
-  }) = _DiContainerNonInhImpl;
-
-  String get name;
-
-  List<String> get hierarchy;
-
-  DiInheritanceType get inheritanceType;
-
-  DiContainerNonInh? get _parent;
-
-  HashMap<Type, DiEntity> get _registeredMap;
-
-  bool get isInitialized;
-
-  bool get isSealed;
-
-  bool get isClosed;
-
-  T? _lookUp<T>({required Object? param1, required Object? param2});
-
-  Future<T>? _lookUpAsync<T>({
-    required Object? param1,
-    required Object? param2,
-  });
-
-  bool _isRegisteredInAncestors<T>();
-
-  void _seal();
-
-  void initialize();
-
-  Future<void> initializeAsync();
-
-  Future<void> close();
-}
-
-final class _DiContainerNonInhImpl implements DiContainerNonInh {
-  _DiContainerNonInhImpl(
-    this.name,
-    this.inheritanceType, {
-    DiContainerNonInh? parent,
+final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
+  DiContainerNonInh(
+    this.name, {
+    DiInheritanceType? inheritanceType,
+    DiContainerBase? parent,
   })  : assert(
           parent == null || !parent.isClosed,
           'Container "$name" received container "${parent.name}" as a parent, '
           'but "${parent.name}" is already closed.',
         ),
+        inheritanceType =
+            inheritanceType ?? DartDiConfig.defaultInheritanceType,
         _parent = parent;
 
   @override
   final String name;
   @override
-  final DiContainerNonInh? _parent;
+  final DiContainerBase? _parent;
   @override
   final DiInheritanceType inheritanceType;
   @override
@@ -123,7 +72,6 @@ final class _DiContainerNonInhImpl implements DiContainerNonInh {
     };
   }
 
-  @override
   void initialize() {
     _onInitializationStart();
 
@@ -140,7 +88,6 @@ final class _DiContainerNonInhImpl implements DiContainerNonInh {
     }
   }
 
-  @override
   Future<void> initializeAsync() async {
     _onInitializationStart();
 
@@ -370,8 +317,8 @@ final class _DiContainerNonInhImpl implements DiContainerNonInh {
     }
   }
 
-  void _visitAncestors(bool Function(DiContainerNonInh) callback) {
-    DiContainerNonInh? currentAncestor = _parent;
+  void _visitAncestors(bool Function(DiContainerBase) callback) {
+    DiContainerBase? currentAncestor = _parent;
 
     while (currentAncestor != null && callback(currentAncestor)) {
       currentAncestor = currentAncestor._parent;
@@ -415,8 +362,8 @@ final class _DiContainerNonInhImpl implements DiContainerNonInh {
     );
   }
 
-  DiContainerNonInh? _getFirstNonCopyAncestor() {
-    DiContainerNonInh? nonCopyAncestor;
+  DiContainerBase? _getFirstNonCopyAncestor() {
+    DiContainerBase? nonCopyAncestor;
 
     _visitAncestors((ancestor) {
       if (ancestor.inheritanceType != DiInheritanceType.copyParent) {
