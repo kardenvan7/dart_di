@@ -29,7 +29,7 @@ void main() {
     DiContainerNonInh container =
         DiContainerNonInh('0', inheritanceType: inheritanceType)
           ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
-          ..registerSingleton<_ValueClass2>(_ValueClass2('2'))
+          ..registerSingleton<_ValueClass2>(() => _ValueClass2('2'))
           ..initialize();
 
     for (int i = 1; i < containersAmount; i++) {
@@ -49,7 +49,7 @@ void main() {
   }) {
     DiContainerBase container = DiContainer('0')
       ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
-      ..registerSingleton<_ValueClass2>(_ValueClass2('2'))
+      ..registerSingleton<_ValueClass2>(() => _ValueClass2('2'))
       ..initialize();
 
     for (int i = 1; i < containersAmount; i++) {

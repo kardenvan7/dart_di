@@ -184,11 +184,11 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
 
   @override
   void registerSingleton<T>(
-    T instance, {
+    T Function() callback, {
     FutureOr Function(T)? dispose,
   }) {
     _addRegistration(() {
-      final entity = DiEntitySingleton<T>(instance, disposer: dispose);
+      final entity = DiEntitySingleton<T>(callback(), disposer: dispose);
       if (dispose != null) _addDisposer(entity.dispose);
       _registerEntity<T>(entity);
     });

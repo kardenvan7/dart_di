@@ -19,7 +19,7 @@ void main() {
           bool isDisposed = false;
 
           uut.registerSingleton(
-            DisposableClass(() => isDisposed = true),
+            () => DisposableClass(() => isDisposed = true),
             dispose: (instance) => instance.dispose(),
           );
           uut.initialize();
@@ -117,7 +117,7 @@ void main() {
             ..registerLazySingleton<InstantiableClass>(
               () => InstantiableClass(() {}),
             )
-            ..registerSingleton<DisposableClass>(DisposableClass(() {}))
+            ..registerSingleton<DisposableClass>(() => DisposableClass(() {}))
             ..initialize();
 
           expect(uut.isRegistered<SimpleClass>(), isTrue);

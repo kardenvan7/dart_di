@@ -224,11 +224,11 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
 
   @override
   void registerSingleton<T>(
-    T instance, {
+    T Function() callback, {
     FutureOr Function(T)? dispose,
   }) {
     _addRegistration(() {
-      final entity = DiEntitySingleton<T>(instance, disposer: dispose);
+      final entity = DiEntitySingleton<T>(callback(), disposer: dispose);
       if (dispose != null) _addDisposer(entity.dispose);
       _registerEntity<T>(entity);
     });
@@ -360,8 +360,8 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   void _informIfClosed() {
     if (isClosed) {
       print(
-        'You\'re accessing an entity via container "$name" which is closed.'
-        'This might result in an unexpected behaviuor.',
+        'You\'re accessing an entity via container "$name" which is closed. '
+        'This might result in an unexpected behaviour.',
       );
     }
   }

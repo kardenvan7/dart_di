@@ -30,7 +30,7 @@ void main() {
         () {
           final uut = getUut();
 
-          uut.registerSingleton(SimpleClass());
+          uut.registerSingleton(() => SimpleClass());
           uut.initialize();
 
           final instance1 = uut.get<SimpleClass>();
@@ -211,7 +211,7 @@ void main() {
         () async {
           final uut = getUut();
 
-          uut.registerSingleton(SimpleClass());
+          uut.registerSingleton(() => SimpleClass());
           uut.initialize();
 
           final instance1 = await uut.getAsync<SimpleClass>();

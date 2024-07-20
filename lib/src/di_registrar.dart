@@ -27,7 +27,7 @@ abstract interface class DiRegistrar {
   /// registered instance.
   ///
   void registerSingleton<T>(
-    T instance, {
+    T Function() callback, {
     FutureOr Function(T)? dispose,
   });
 

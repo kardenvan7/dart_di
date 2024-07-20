@@ -53,7 +53,7 @@ DiContainerNonInh _setupContainer() {
 
   container
     ..registerFactory<_Clazz1>(() => _Clazz1())
-    ..registerSingleton<_Clazz2>(_Clazz2())
+    ..registerSingleton<_Clazz2>(() => _Clazz2())
     ..registerLazySingleton<_Clazz3>(() => _Clazz3())
     ..registerFactoryAsync<_Clazz4>(
       () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz4()),
@@ -64,17 +64,17 @@ DiContainerNonInh _setupContainer() {
     // ..registerSingletonAsync<_Clazz6>(
     //   () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz6()),
     // )
-    ..registerSingleton<_Clazz7>(_Clazz7())
-    ..registerSingleton<_Clazz8>(_Clazz8())
-    ..registerSingleton<_Clazz9>(_Clazz9())
-    ..registerSingleton<_Clazz10>(_Clazz10())
-    ..registerSingleton<_Clazz11>(_Clazz11())
-    ..registerSingleton<_Clazz12>(_Clazz12())
-    ..registerSingleton<_Clazz13>(_Clazz13())
-    ..registerSingleton<_Clazz14>(_Clazz14())
-    ..registerSingleton<_Clazz15>(_Clazz15())
-    ..registerSingleton<_Clazz16>(_Clazz16())
-    ..registerSingleton<_Clazz17>(_Clazz17());
+    ..registerSingleton<_Clazz7>(() => _Clazz7())
+    ..registerSingleton<_Clazz8>(() => _Clazz8())
+    ..registerSingleton<_Clazz9>(() => _Clazz9())
+    ..registerSingleton<_Clazz10>(() => _Clazz10())
+    ..registerSingleton<_Clazz11>(() => _Clazz11())
+    ..registerSingleton<_Clazz12>(() => _Clazz12())
+    ..registerSingleton<_Clazz13>(() => _Clazz13())
+    ..registerSingleton<_Clazz14>(() => _Clazz14())
+    ..registerSingleton<_Clazz15>(() => _Clazz15())
+    ..registerSingleton<_Clazz16>(() => _Clazz16())
+    ..registerSingleton<_Clazz17>(() => _Clazz17());
 
   container.initialize();
 
