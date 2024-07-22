@@ -20,7 +20,7 @@ sealed class DiContainerBase implements DiRegistrar, DiRetriever {
 
   DiContainerBase? get _parent;
 
-  HashMap<Type, DiEntity> get _registeredMap;
+  HashMap<Type, DiEntity> get _entitiesMap;
 
   bool get isInitialized;
 

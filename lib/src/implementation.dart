@@ -60,8 +60,8 @@ abstract final class DiContainerAsyncImpl extends DiContainerBaseImpl
       }
       _isInitialized = true;
     } catch (_, __) {
-      _registeredMap.clear();
-      _disposables.clear();
+      _entitiesMap.clear();
+      _disposers.clear();
     } finally {
       _registrationCallbacks.clear();
     }
@@ -118,8 +118,8 @@ abstract final class DiContainerImpl extends DiContainerBaseImpl
       }
       _isInitialized = true;
     } catch (_, __) {
-      _registeredMap.clear();
-      _disposables.clear();
+      _entitiesMap.clear();
+      _disposers.clear();
     } finally {
       _registrationCallbacks.clear();
     }
@@ -144,8 +144,8 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   @override
   final DiContainerBase? _parent;
   @override
-  final HashMap<Type, DiEntity> _registeredMap = HashMap<Type, DiEntity>();
-  final List<_FutureOrVoidCallback> _disposables = [];
+  final HashMap<Type, DiEntity> _entitiesMap = HashMap<Type, DiEntity>();
+  final List<_FutureOrVoidCallback> _disposers = [];
 
   @override
   bool get isInitialized => _isInitialized;
@@ -179,7 +179,8 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   void registerFactory<T>(T Function() callback) {
     _addRegistration(
       () => _registerEntity<T>(
-          DiEntityFactory<T>(({param1, param2}) => callback())),
+        DiEntityFactory<T>(({param1, param2}) => callback()),
+      ),
     );
   }
 
@@ -297,7 +298,7 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   @override
   T? maybeGet<T>({Object? param1, Object? param2}) {
     _informIfClosed();
-    return _registeredMap[T]?.get(param1: param1, param2: param2) ??
+    return _entitiesMap[T]?.get(param1: param1, param2: param2) ??
         _lookUp<T>(param1: param1, param2: param2);
   }
 
@@ -310,7 +311,7 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   @override
   Future<T>? maybeGetAsync<T>({Object? param1, Object? param2}) {
     _informIfClosed();
-    return _registeredMap[T]?.getAsync(param1: param1, param2: param2)
+    return _entitiesMap[T]?.getAsync(param1: param1, param2: param2)
             as Future<T>? ??
         _lookUpAsync<T>(param1: param1, param2: param2);
   }
@@ -318,7 +319,7 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   @override
   bool isRegistered<T>() {
     _informIfClosed();
-    return _registeredMap.containsKey(T) || _isRegisteredInAncestors<T>();
+    return _entitiesMap.containsKey(T) || _isRegisteredInAncestors<T>();
   }
 
   @override
@@ -351,10 +352,10 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     _registrationCallbacks.add(registrationCallback);
   }
 
-  void _registerEntity<T>(DiEntity<T> entity) => _registeredMap[T] = entity;
+  void _registerEntity<T>(DiEntity<T> entity) => _entitiesMap[T] = entity;
 
   void _addDisposer(_FutureOrVoidCallback disposer) {
-    _disposables.add(disposer);
+    _disposers.add(disposer);
   }
 
   void _informIfClosed() {
@@ -367,7 +368,7 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   }
 
   Future<void> _disposeAll() =>
-      Future.wait(_disposables.map((value) async => await value()));
+      Future.wait(_disposers.reversed.map((value) async => await value()));
 
   @override
   String toString() {
@@ -377,7 +378,7 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
         'isInitialized: $isInitialized, '
         'isSealed: $isSealed, '
         'isClosed: $isClosed, '
-        'types: [${_registeredMap.keys.join(', ')}]'
+        'types: [${_entitiesMap.keys.join(', ')}]'
         ')';
   }
 
@@ -385,8 +386,8 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   Future<void> close() async {
     await _disposeAll();
     _registrationCallbacks.clear();
-    _disposables.clear();
-    _registeredMap.clear();
+    _disposers.clear();
+    _entitiesMap.clear();
     _isClosed = true;
   }
 }

@@ -40,7 +40,7 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBaseImpl {
   void _onInitializationStart() {
     if (_parent != null) {
       _parent!._seal();
-      _registeredMap.addAll(_parent!._registeredMap);
+      _entitiesMap.addAll(_parent!._entitiesMap);
     }
   }
 

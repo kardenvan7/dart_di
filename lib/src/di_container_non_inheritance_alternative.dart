@@ -21,7 +21,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
   @override
   final DiInheritanceType inheritanceType;
   @override
-  final HashMap<Type, DiEntity> _registeredMap = HashMap<Type, DiEntity>();
+  final HashMap<Type, DiEntity> _entitiesMap = HashMap<Type, DiEntity>();
   final List<_FutureOrVoidCallback> _disposables = [];
   final List<_FutureOrVoidCallback> _registrationCallbacks = [];
 
@@ -81,7 +81,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
       }
       _isInitialized = true;
     } catch (_, __) {
-      _registeredMap.clear();
+      _entitiesMap.clear();
       _disposables.clear();
     } finally {
       _registrationCallbacks.clear();
@@ -97,7 +97,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
       }
       _isInitialized = true;
     } catch (_, __) {
-      _registeredMap.clear();
+      _entitiesMap.clear();
       _disposables.clear();
     } finally {
       _registrationCallbacks.clear();
@@ -117,7 +117,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
       case DiInheritanceType.copyParent:
         if (_parent != null) {
           _parent!._seal();
-          _registeredMap.addAll(_parent!._registeredMap);
+          _entitiesMap.addAll(_parent!._entitiesMap);
         }
         break;
     }
@@ -276,7 +276,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
     }
 
     _informIfClosed();
-    return _registeredMap[T]?.get(param1: param1, param2: param2) ??
+    return _entitiesMap[T]?.get(param1: param1, param2: param2) ??
         _lookUp<T>(param1: param1, param2: param2);
   }
 
@@ -293,7 +293,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
     }
 
     _informIfClosed();
-    return _registeredMap[T]?.getAsync(param1: param1, param2: param2)
+    return _entitiesMap[T]?.getAsync(param1: param1, param2: param2)
             as Future<T>? ??
         _lookUpAsync<T>(param1: param1, param2: param2);
   }
@@ -301,7 +301,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
   @override
   bool isRegistered<T>() {
     _informIfClosed();
-    return _registeredMap.containsKey(T) || _isRegisteredInAncestors<T>();
+    return _entitiesMap.containsKey(T) || _isRegisteredInAncestors<T>();
   }
 
   @override
@@ -334,7 +334,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
     _registrationCallbacks.add(registrationCallback);
   }
 
-  void _registerEntity<T>(DiEntity<T> entity) => _registeredMap[T] = entity;
+  void _registerEntity<T>(DiEntity<T> entity) => _entitiesMap[T] = entity;
 
   void _addDisposer(_FutureOrVoidCallback disposer) {
     _disposables.add(disposer);
@@ -385,7 +385,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
         'isInitialized: $isInitialized, '
         'isSealed: $isSealed, '
         'isClosed: $isClosed, '
-        'types: [${_registeredMap.keys.join(', ')}]'
+        'types: [${_entitiesMap.keys.join(', ')}]'
         ')';
   }
 
@@ -396,7 +396,7 @@ final class DiContainerNonInh implements DiContainerBase, DiRegistrarAsync {
     await _disposeAll();
     _registrationCallbacks.clear();
     _disposables.clear();
-    _registeredMap.clear();
+    _entitiesMap.clear();
     _isClosed = true;
   }
 }
