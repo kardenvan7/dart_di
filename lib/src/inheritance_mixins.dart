@@ -2,9 +2,6 @@ part of 'di_container.dart';
 
 base mixin DiContainerBaseCopyParentMixin on DiContainerBaseImpl {
   @override
-  DiInheritanceType get inheritanceType => DiInheritanceType.copyParent;
-
-  @override
   T? _lookUp<T>({
     required Object? param1,
     required Object? param2,
@@ -70,9 +67,6 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBaseImpl {
 }
 
 base mixin DiContainerBaseLinkParentMixin on DiContainerBaseImpl {
-  @override
-  DiInheritanceType get inheritanceType => DiInheritanceType.linkParent;
-
   @override
   T? _lookUp<T>({required Object? param1, required Object? param2}) =>
       _parent?.maybeGet<T>(param1: param1, param2: param2);

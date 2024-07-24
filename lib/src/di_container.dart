@@ -15,8 +15,6 @@ sealed class DiContainerBase implements DiRegistrar, DiRetriever {
 
   List<String> get hierarchy;
 
-  DiInheritanceType get inheritanceType;
-
   bool get isInitialized;
 
   bool get isSealed;
