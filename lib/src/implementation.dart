@@ -126,7 +126,7 @@ abstract final class DiContainerImpl extends DiContainerBaseImpl
   }
 }
 
-abstract final class DiContainerBaseImpl implements DiContainerBase {
+abstract final class DiContainerBaseImpl {
   DiContainerBaseImpl(
     this.name, {
     DiContainerBase? parent,
@@ -137,29 +137,22 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
         ),
         _parent = parent as DiContainerBaseImpl?;
 
-  /// A container's name. Useful for debugging purposes.
-  ///
-  @override
   final String name;
   final DiContainerBaseImpl? _parent;
   final HashMap<Type, DiEntity> _entitiesMap = HashMap<Type, DiEntity>();
   final List<_FutureOrVoidCallback> _disposers = [];
 
-  @override
   bool get isInitialized => _isInitialized;
   bool _isInitialized = false;
 
-  @override
   bool get isSealed => isInitialized;
   set _isSealed(bool value) => _isInitialized = value;
 
-  @override
   bool get isClosed => _isClosed;
   bool _isClosed = false;
 
   List<_VoidCallback> get _registrationCallbacks;
 
-  @override
   List<String> get hierarchy {
     final List<String> nameList = [name];
 
@@ -182,7 +175,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
 
   void _onInitializationStart();
 
-  @override
   void registerFactory<T>(T Function() callback) {
     _addRegistration(
       () => _registerEntity<T>(
@@ -191,7 +183,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     );
   }
 
-  @override
   void registerFactoryParam<T, P1, P2>(T Function(P1 p1, P2 p2) callback) {
     _addRegistration(
       () => _registerEntity<T>(
@@ -200,7 +191,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     );
   }
 
-  @override
   void registerLazySingleton<T>(
     T Function() callback, {
     FutureOr Function(T)? dispose,
@@ -215,7 +205,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     });
   }
 
-  @override
   void registerLazySingletonParam<T, P1, P2>(
     T Function(P1 p1, P2 p2) callback, {
     FutureOr<void> Function(T p1)? dispose,
@@ -230,7 +219,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     });
   }
 
-  @override
   void registerSingleton<T>(
     T Function() callback, {
     FutureOr Function(T)? dispose,
@@ -242,7 +230,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     });
   }
 
-  @override
   void registerFactoryAsync<T>(Future<T> Function() callback) {
     _addRegistration(
       () => _registerEntity<T>(
@@ -251,7 +238,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     );
   }
 
-  @override
   void registerFactoryAsyncParam<T, P1, P2>(
     Future<T> Function(P1, P2) callback,
   ) {
@@ -262,7 +248,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     );
   }
 
-  @override
   void registerLazySingletonAsync<T>(
     Future<T> Function() callback, {
     FutureOr<void> Function(T)? dispose,
@@ -279,7 +264,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     });
   }
 
-  @override
   void registerLazySingletonAsyncParam<T, P1, P2>(
     Future<T> Function(P1, P2) callback, {
     FutureOr<void> Function(T)? dispose,
@@ -296,26 +280,22 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     });
   }
 
-  @override
   T get<T>({Object? param1, Object? param2}) {
     return maybeGet<T>() ??
         (throw Exception('Type $T is not found in the provided factories map'));
   }
 
-  @override
   T? maybeGet<T>({Object? param1, Object? param2}) {
     _informIfClosed();
     return _entitiesMap[T]?.get(param1: param1, param2: param2) ??
         _lookUp<T>(param1: param1, param2: param2);
   }
 
-  @override
   Future<T> getAsync<T>({Object? param1, Object? param2}) async {
     return await maybeGetAsync<T>(param1: param1, param2: param2) ??
         (throw Exception('Type $T is not found in the provided factories map'));
   }
 
-  @override
   Future<T>? maybeGetAsync<T>({Object? param1, Object? param2}) {
     _informIfClosed();
     return _entitiesMap[T]?.getAsync(param1: param1, param2: param2)
@@ -323,7 +303,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
         _lookUpAsync<T>(param1: param1, param2: param2);
   }
 
-  @override
   bool isRegistered<T>() {
     _informIfClosed();
     return _entitiesMap.containsKey(T) || _isRegisteredInAncestors<T>();
@@ -388,7 +367,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
         ')';
   }
 
-  @override
   Future<void> close() async {
     await _disposeAll();
     _registrationCallbacks.clear();
