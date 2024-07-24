@@ -22,27 +22,6 @@ void main() {
     1000,
   ];
 
-  DiContainerNonInh prepareNonInhContainer({
-    required DiInheritanceType inheritanceType,
-    int containersAmount = 1,
-  }) {
-    DiContainerNonInh container =
-        DiContainerNonInh('0', inheritanceType: inheritanceType)
-          ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
-          ..registerSingleton<_ValueClass2>(() => _ValueClass2('2'))
-          ..initialize();
-
-    for (int i = 1; i < containersAmount; i++) {
-      container = DiContainerNonInh(
-        '$i',
-        inheritanceType: inheritanceType,
-        parent: container,
-      )..initialize();
-    }
-
-    return container;
-  }
-
   DiContainerBase prepareContainer({
     required DiInheritanceType inheritanceType,
     int containersAmount = 1,
@@ -89,20 +68,12 @@ void main() {
                 () {
                   void runComparisonTest(
                     DiContainerBase container,
-                    DiContainerNonInh nonInhContainer,
                     GetIt getIt,
                   ) {
                     const repeatCount = 1;
 
                     for (int i = 0; i < repeatCount; i++) {
                       measure(() => container.get<_ValueClass2>(), 'FluDi');
-                    }
-
-                    for (int i = 0; i < repeatCount; i++) {
-                      measure(
-                        () => nonInhContainer.get<_ValueClass2>(),
-                        'FluDi Inh',
-                      );
                     }
 
                     for (int i = 0; i < repeatCount; i++) {
@@ -114,13 +85,9 @@ void main() {
                     inheritanceType: inheritanceType,
                     containersAmount: containerCount,
                   );
-                  final nonInhContainer = prepareNonInhContainer(
-                    inheritanceType: inheritanceType,
-                    containersAmount: containerCount,
-                  );
                   final getIt = prepareGetIt();
 
-                  runComparisonTest(container, nonInhContainer, getIt);
+                  runComparisonTest(container, getIt);
                 },
               );
             }

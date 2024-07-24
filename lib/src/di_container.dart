@@ -7,7 +7,6 @@ import 'di_retriever.dart';
 import 'di_registrar.dart';
 import 'di_inheritance_type.dart';
 
-part 'di_container_non_inheritance_alternative.dart';
 part 'implementation.dart';
 part 'inheritance_mixins.dart';
 
@@ -18,15 +17,15 @@ sealed class DiContainerBase implements DiRegistrar, DiRetriever {
 
   DiInheritanceType get inheritanceType;
 
-  DiContainerBase? get _parent;
-
-  HashMap<Type, DiEntity> get _entitiesMap;
-
   bool get isInitialized;
 
   bool get isSealed;
 
   bool get isClosed;
+
+  DiContainerBase? get _parent;
+
+  HashMap<Type, DiEntity> get _entitiesMap;
 
   T? _lookUp<T>({required Object? param1, required Object? param2});
 

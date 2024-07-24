@@ -2,7 +2,7 @@ import 'package:dart_di/dart_di.dart';
 import 'package:get_it/get_it.dart';
 
 void main() async {
-  final globalContainer = _setupContainer();
+  final globalContainer = await _setupContainer();
 
   final getIt = await _setupGetIt();
   const repeatCount = 2;
@@ -45,8 +45,8 @@ void main() async {
   }
 }
 
-DiContainerNonInh _setupContainer() {
-  final container = DiContainerNonInh(
+Future<DiContainerAsync> _setupContainer() async {
+  final container = DiContainerAsync(
     'global_scope',
     inheritanceType: DiInheritanceType.copyParent,
   );
@@ -61,9 +61,9 @@ DiContainerNonInh _setupContainer() {
     ..registerLazySingletonAsync<_Clazz5>(
       () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz5()),
     )
-    // ..registerSingletonAsync<_Clazz6>(
-    //   () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz6()),
-    // )
+    ..registerSingletonAsync<_Clazz6>(
+      () => Future.delayed(const Duration(milliseconds: 100), () => _Clazz6()),
+    )
     ..registerSingleton<_Clazz7>(() => _Clazz7())
     ..registerSingleton<_Clazz8>(() => _Clazz8())
     ..registerSingleton<_Clazz9>(() => _Clazz9())
@@ -76,7 +76,7 @@ DiContainerNonInh _setupContainer() {
     ..registerSingleton<_Clazz16>(() => _Clazz16())
     ..registerSingleton<_Clazz17>(() => _Clazz17());
 
-  container.initialize();
+  await container.initialize();
 
   return container;
 }
