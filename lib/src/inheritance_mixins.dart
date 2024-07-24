@@ -50,8 +50,8 @@ base mixin DiContainerBaseCopyParentMixin on DiContainerBaseImpl {
     );
   }
 
-  DiContainerBase? _getFirstNonCopyAncestor() {
-    DiContainerBase? nonCopyAncestor;
+  DiContainerBaseImpl? _getFirstNonCopyAncestor() {
+    DiContainerBaseImpl? nonCopyAncestor;
 
     _visitAncestors((ancestor) {
       if (ancestor is! DiContainerBaseCopyParentMixin) {

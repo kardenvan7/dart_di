@@ -135,15 +135,13 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
           'Container "$name" received container "${parent.name}" as a parent, '
           'but "${parent.name}" is already closed.',
         ),
-        _parent = parent;
+        _parent = parent as DiContainerBaseImpl?;
 
   /// A container's name. Useful for debugging purposes.
   ///
   @override
   final String name;
-  @override
-  final DiContainerBase? _parent;
-  @override
+  final DiContainerBaseImpl? _parent;
   final HashMap<Type, DiEntity> _entitiesMap = HashMap<Type, DiEntity>();
   final List<_FutureOrVoidCallback> _disposers = [];
 
@@ -172,6 +170,15 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
 
     return nameList;
   }
+
+  T? _lookUp<T>({required Object? param1, required Object? param2});
+
+  Future<T>? _lookUpAsync<T>({
+    required Object? param1,
+    required Object? param2,
+  });
+
+  bool _isRegisteredInAncestors<T>();
 
   void _onInitializationStart();
 
@@ -322,7 +329,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     return _entitiesMap.containsKey(T) || _isRegisteredInAncestors<T>();
   }
 
-  @override
   void _seal() {
     // Not checking for "isSealed" since now it's implementation is equals to "isInitialized"
     if (!isInitialized) {
@@ -335,8 +341,8 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     }
   }
 
-  void _visitAncestors(bool Function(DiContainerBase) callback) {
-    DiContainerBase? currentAncestor = _parent;
+  void _visitAncestors(bool Function(DiContainerBaseImpl) callback) {
+    DiContainerBaseImpl? currentAncestor = _parent;
 
     while (currentAncestor != null && callback(currentAncestor)) {
       currentAncestor = currentAncestor._parent;
