@@ -21,21 +21,6 @@ sealed class DiContainerBase implements DiRegistrar, DiRetriever {
 
   bool get isClosed;
 
-  DiContainerBase? get _parent;
-
-  HashMap<Type, DiEntity> get _entitiesMap;
-
-  T? _lookUp<T>({required Object? param1, required Object? param2});
-
-  Future<T>? _lookUpAsync<T>({
-    required Object? param1,
-    required Object? param2,
-  });
-
-  bool _isRegisteredInAncestors<T>();
-
-  void _seal();
-
   Future<void> close();
 }
 
