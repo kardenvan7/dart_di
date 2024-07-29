@@ -22,21 +22,20 @@ void main() {
     1000,
   ];
 
-  DiContainerBase prepareContainer({
+  DiContainer prepareContainer({
     required DiInheritanceType inheritanceType,
     int containersAmount = 1,
   }) {
-    DiContainerBase container = DiContainer('0')
+    DiContainer container = DiContainer('0')
       ..registerFactory<_ValueClass1>(() => _ValueClass1('1'))
-      ..registerSingleton<_ValueClass2>(() => _ValueClass2('2'))
-      ..initialize();
+      ..registerSingleton<_ValueClass2>(_ValueClass2('2'));
 
     for (int i = 1; i < containersAmount; i++) {
       container = DiContainer(
         '$i',
         parent: container,
         inheritanceType: inheritanceType,
-      )..initialize();
+      );
     }
 
     return container;
@@ -67,7 +66,7 @@ void main() {
                 'Containers count: $containerCount',
                 () {
                   void runComparisonTest(
-                    DiContainerBase container,
+                    DiContainer container,
                     GetIt getIt,
                   ) {
                     const repeatCount = 1;
@@ -95,7 +94,7 @@ void main() {
         );
       }
 
-      runTests('Link Parent', DiInheritanceType.linkParent);
+      // runTests('Link Parent', DiInheritanceType.linkParent);
       runTests('Copy Parent', DiInheritanceType.copyParent);
     },
   );

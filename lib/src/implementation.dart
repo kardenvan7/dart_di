@@ -1,98 +1,45 @@
 part of 'di_container.dart';
 
-typedef _VoidCallback = void Function();
 typedef _FutureOrVoidCallback = FutureOr<void> Function();
 
-final class DiContainerAsyncImplCopyParent extends DiContainerAsyncImpl
-    with DiContainerBaseCopyParentMixin {
-  DiContainerAsyncImplCopyParent(super.name, {super.parent}) : super._();
-}
-
-final class DiContainerAsyncImplLinkParent extends DiContainerAsyncImpl
-    with DiContainerBaseLinkParentMixin {
-  DiContainerAsyncImplLinkParent(super.name, {super.parent}) : super._();
-}
-
 final class DiContainerImplCopyParent extends DiContainerImpl
-    with DiContainerBaseCopyParentMixin {
-  DiContainerImplCopyParent(super.name, {super.parent}) : super._();
+    with DiContainerImplCopyParentMixin {
+  DiContainerImplCopyParent(super.name, {super.parent})
+      : assert(
+          parent == null || parent.isSealed,
+          'For a container with inheritance type "copyParent", provided parent must be sealed. '
+          'This exception was fired by an assertion in container "$name", provided parent for it is "${parent.name}".',
+        ),
+        super._(
+          initialMap: parent != null ? HashMap.from(parent._entitiesMap) : null,
+        );
 }
 
 final class DiContainerImplLinkParent extends DiContainerImpl
-    with DiContainerBaseLinkParentMixin {
+    with DiContainerImplLinkParentMixin {
   DiContainerImplLinkParent(super.name, {super.parent}) : super._();
 }
 
-abstract final class DiContainerAsyncImpl extends DiContainerBaseImpl
-    implements DiContainerAsync {
-  DiContainerAsyncImpl._(
-    super.name, {
-    super.parent,
-  });
-
-  factory DiContainerAsyncImpl(
-    String name, {
-    DiInheritanceType? inheritanceType,
-    DiContainerBase? parent,
-  }) {
-    return switch (inheritanceType ?? DartDiConfig.defaultInheritanceType) {
-      DiInheritanceType.copyParent => DiContainerAsyncImplCopyParent(
-          name,
-          parent: parent,
-        ),
-      DiInheritanceType.linkParent => DiContainerAsyncImplLinkParent(
-          name,
-          parent: parent,
-        ),
-    };
-  }
-
-  @override
-  final List<_FutureOrVoidCallback> _registrationCallbacks = [];
-
-  @override
-  Future<void> initialize() async {
-    _onInitializationStart();
-
-    try {
-      for (final callback in _registrationCallbacks) {
-        await callback();
-      }
-      _isInitialized = true;
-    } catch (_, __) {
-      _entitiesMap.clear();
-      _disposers.clear();
-    } finally {
-      _registrationCallbacks.clear();
-    }
-  }
-
-  @override
-  void registerSingletonAsync<T>(
-    Future<T> Function() callback, {
-    FutureOr Function(T p1)? dispose,
-  }) {
-    _addRegistration(() async {
-      final instance = await callback();
-      final entity = DiEntitySingleton<T>(instance, disposer: dispose);
-      if (dispose != null) _addDisposer(entity.dispose);
-      _registerEntity<T>(entity);
-    });
-  }
-}
-
-abstract final class DiContainerImpl extends DiContainerBaseImpl
-    implements DiContainer {
+abstract final class DiContainerImpl implements DiContainer {
   DiContainerImpl._(
-    super.name, {
-    super.parent,
-  });
+    this.name, {
+    DiContainerImpl? parent,
+    HashMap<Type, DiEntity>? initialMap,
+  })  : assert(
+          parent == null || !parent.isClosed,
+          'Container "$name" received container "${parent.name}" as a parent, '
+          'but "${parent.name}" is already closed.',
+        ),
+        _parent = parent,
+        _entitiesMap = initialMap ?? HashMap<Type, DiEntity>();
 
   factory DiContainerImpl(
     String name, {
     DiInheritanceType? inheritanceType,
-    DiContainerBase? parent,
+    DiContainer? parent,
   }) {
+    parent = parent as DiContainerImpl?;
+
     return switch (inheritanceType ?? DartDiConfig.defaultInheritanceType) {
       DiInheritanceType.copyParent => DiContainerImplCopyParent(
           name,
@@ -106,60 +53,18 @@ abstract final class DiContainerImpl extends DiContainerBaseImpl
   }
 
   @override
-  final List<_VoidCallback> _registrationCallbacks = [];
-
-  @override
-  void initialize() {
-    _onInitializationStart();
-
-    try {
-      for (final callback in _registrationCallbacks) {
-        callback();
-      }
-      _isInitialized = true;
-    } catch (_, __) {
-      _entitiesMap.clear();
-      _disposers.clear();
-    } finally {
-      _registrationCallbacks.clear();
-    }
-  }
-}
-
-abstract final class DiContainerBaseImpl implements DiContainerBase {
-  DiContainerBaseImpl(
-    this.name, {
-    DiContainerBase? parent,
-  })  : assert(
-          parent == null || !parent.isClosed,
-          'Container "$name" received container "${parent.name}" as a parent, '
-          'but "${parent.name}" is already closed.',
-        ),
-        _parent = parent;
-
-  /// A container's name. Useful for debugging purposes.
-  ///
-  @override
   final String name;
-  @override
-  final DiContainerBase? _parent;
-  @override
-  final HashMap<Type, DiEntity> _entitiesMap = HashMap<Type, DiEntity>();
+  final DiContainerImpl? _parent;
+  final HashMap<Type, DiEntity> _entitiesMap;
   final List<_FutureOrVoidCallback> _disposers = [];
 
   @override
-  bool get isInitialized => _isInitialized;
-  bool _isInitialized = false;
-
-  @override
-  bool get isSealed => isInitialized;
-  set _isSealed(bool value) => _isInitialized = value;
+  bool get isSealed => _isSealed;
+  bool _isSealed = false;
 
   @override
   bool get isClosed => _isClosed;
   bool _isClosed = false;
-
-  List<_VoidCallback> get _registrationCallbacks;
 
   @override
   List<String> get hierarchy {
@@ -173,24 +78,37 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     return nameList;
   }
 
-  void _onInitializationStart();
+  T? _lookUp<T>({required Object? param1, required Object? param2});
+
+  Future<T>? _lookUpAsync<T>({
+    required Object? param1,
+    required Object? param2,
+  });
+
+  bool _isRegisteredInAncestors<T>();
 
   @override
   void registerFactory<T>(T Function() callback) {
-    _addRegistration(
-      () => _registerEntity<T>(
-        DiEntityFactory<T>(({param1, param2}) => callback()),
-      ),
+    _registerEntity<T>(
+      DiEntityFactory<T>(({param1, param2}) => callback()),
     );
   }
 
   @override
   void registerFactoryParam<T, P1, P2>(T Function(P1 p1, P2 p2) callback) {
-    _addRegistration(
-      () => _registerEntity<T>(
-        DiEntityFactory(({param1, param2}) => callback(param1, param2)),
-      ),
+    _registerEntity<T>(
+      DiEntityFactory(({param1, param2}) => callback(param1, param2)),
     );
+  }
+
+  @override
+  void registerSingleton<T>(
+    T instance, {
+    FutureOr Function(T)? dispose,
+  }) {
+    final entity = DiEntitySingleton<T>(instance, disposer: dispose);
+    _registerEntity<T>(entity);
+    if (dispose != null) _addDisposer(entity.dispose);
   }
 
   @override
@@ -198,14 +116,12 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     T Function() callback, {
     FutureOr Function(T)? dispose,
   }) {
-    _addRegistration(() {
-      final entity = DiEntityLazySingleton<T>(
-        ({param1, param2}) => callback(),
-        disposer: dispose,
-      );
-      if (dispose != null) _addDisposer(entity.dispose);
-      _registerEntity<T>(entity);
-    });
+    final entity = DiEntityLazySingleton<T>(
+      ({param1, param2}) => callback(),
+      disposer: dispose,
+    );
+    _registerEntity<T>(entity);
+    if (dispose != null) _addDisposer(entity.dispose);
   }
 
   @override
@@ -213,34 +129,18 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     T Function(P1 p1, P2 p2) callback, {
     FutureOr<void> Function(T p1)? dispose,
   }) {
-    _addRegistration(() {
-      final entity = DiEntityLazySingleton<T>(
-        ({param1, param2}) => callback(param1, param2),
-        disposer: dispose,
-      );
-      if (dispose != null) _addDisposer(entity.dispose);
-      _registerEntity<T>(entity);
-    });
-  }
-
-  @override
-  void registerSingleton<T>(
-    T Function() callback, {
-    FutureOr Function(T)? dispose,
-  }) {
-    _addRegistration(() {
-      final entity = DiEntitySingleton<T>(callback(), disposer: dispose);
-      if (dispose != null) _addDisposer(entity.dispose);
-      _registerEntity<T>(entity);
-    });
+    final entity = DiEntityLazySingleton<T>(
+      ({param1, param2}) => callback(param1, param2),
+      disposer: dispose,
+    );
+    _registerEntity<T>(entity);
+    if (dispose != null) _addDisposer(entity.dispose);
   }
 
   @override
   void registerFactoryAsync<T>(Future<T> Function() callback) {
-    _addRegistration(
-      () => _registerEntity<T>(
-        DiEntityAsyncFactory<T>(({param1, param2}) => callback()),
-      ),
+    _registerEntity<T>(
+      DiEntityAsyncFactory<T>(({param1, param2}) => callback()),
     );
   }
 
@@ -248,12 +148,17 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   void registerFactoryAsyncParam<T, P1, P2>(
     Future<T> Function(P1, P2) callback,
   ) {
-    _addRegistration(
-      () => _registerEntity<T>(
-        DiEntityAsyncFactory<T>(({param1, param2}) => callback(param1, param2)),
-      ),
+    _registerEntity<T>(
+      DiEntityAsyncFactory<T>(({param1, param2}) => callback(param1, param2)),
     );
   }
+
+  @override
+  Future<void> registerSingletonAsync<T>(
+    Future<T> Function() callback, {
+    FutureOr Function(T p1)? dispose,
+  }) async =>
+      registerSingleton<T>(await callback(), dispose: dispose);
 
   @override
   void registerLazySingletonAsync<T>(
@@ -261,15 +166,13 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     FutureOr<void> Function(T)? dispose,
     bool allowConsequentGetCalls = true,
   }) {
-    _addRegistration(() {
-      final entity = DiEntityLazyAsyncSingleton<T>(
-        ({param1, param2}) => callback(),
-        disposer: dispose,
-        allowConsequentGetCalls: allowConsequentGetCalls,
-      );
-      if (dispose != null) _addDisposer(entity.dispose);
-      _registerEntity<T>(entity);
-    });
+    final entity = DiEntityLazyAsyncSingleton<T>(
+      ({param1, param2}) => callback(),
+      disposer: dispose,
+      allowConsequentGetCalls: allowConsequentGetCalls,
+    );
+    _registerEntity<T>(entity);
+    if (dispose != null) _addDisposer(entity.dispose);
   }
 
   @override
@@ -278,15 +181,13 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
     FutureOr<void> Function(T)? dispose,
     bool allowConsequentGetCalls = true,
   }) {
-    _addRegistration(() {
-      final entity = DiEntityLazyAsyncSingleton<T>(
-        ({param1, param2}) => callback(param1, param2),
-        disposer: dispose,
-        allowConsequentGetCalls: allowConsequentGetCalls,
-      );
-      if (dispose != null) _addDisposer(entity.dispose);
-      _registerEntity<T>(entity);
-    });
+    final entity = DiEntityLazyAsyncSingleton<T>(
+      ({param1, param2}) => callback(param1, param2),
+      disposer: dispose,
+      allowConsequentGetCalls: allowConsequentGetCalls,
+    );
+    _registerEntity<T>(entity);
+    if (dispose != null) _addDisposer(entity.dispose);
   }
 
   @override
@@ -297,7 +198,7 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
 
   @override
   T? maybeGet<T>({Object? param1, Object? param2}) {
-    _informIfClosed();
+    _informIfClosed<T>();
     return _entitiesMap[T]?.get(param1: param1, param2: param2) ??
         _lookUp<T>(param1: param1, param2: param2);
   }
@@ -310,59 +211,50 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
 
   @override
   Future<T>? maybeGetAsync<T>({Object? param1, Object? param2}) {
-    _informIfClosed();
+    _informIfClosed<T>();
     return _entitiesMap[T]?.getAsync(param1: param1, param2: param2)
             as Future<T>? ??
         _lookUpAsync<T>(param1: param1, param2: param2);
   }
 
   @override
-  bool isRegistered<T>() {
-    _informIfClosed();
-    return _entitiesMap.containsKey(T) || _isRegisteredInAncestors<T>();
-  }
+  bool isRegistered<T>() =>
+      _entitiesMap.containsKey(T) || _isRegisteredInAncestors<T>();
 
   @override
-  void _seal() {
-    // Not checking for "isSealed" since now it's implementation is equals to "isInitialized"
-    if (!isInitialized) {
-      print(
-        'DiContainer "$name" has been sealed, but never initialized. '
-        'Probably, you forgot to initialize it prior to setting it as a parent '
-        'for a container with inheritance type "copyParent".',
-      );
-      _isSealed = true;
-    }
-  }
+  void seal() => _isSealed = true;
 
-  void _visitAncestors(bool Function(DiContainerBase) callback) {
-    DiContainerBase? currentAncestor = _parent;
+  void _visitAncestors(bool Function(DiContainerImpl) callback) {
+    DiContainerImpl? currentAncestor = _parent;
 
     while (currentAncestor != null && callback(currentAncestor)) {
       currentAncestor = currentAncestor._parent;
     }
   }
 
-  void _addRegistration(_VoidCallback registrationCallback) {
-    assert(
-      !isSealed && !isClosed,
-      'Container "$name" has already been ${isClosed ? 'closed' : 'sealed'}, '
-      'therefore no further registrations are allowed.',
-    );
-    _registrationCallbacks.add(registrationCallback);
+  void _registerEntity<T>(DiEntity<T> entity) {
+    _informIfSealed<T>();
+    _entitiesMap[T] = entity;
   }
-
-  void _registerEntity<T>(DiEntity<T> entity) => _entitiesMap[T] = entity;
 
   void _addDisposer(_FutureOrVoidCallback disposer) {
     _disposers.add(disposer);
   }
 
-  void _informIfClosed() {
+  void _informIfClosed<T>() {
     if (isClosed) {
       print(
-        'You\'re accessing an entity via container "$name" which is closed. '
+        'You\'re accessing an entity "$T" via container "$name" which is closed. '
         'This might result in an unexpected behaviour.',
+      );
+    }
+  }
+
+  void _informIfSealed<T>() {
+    if (isSealed) {
+      print(
+        'You\'re registering new entity "$T" in a container "$name" with has already been sealed. '
+        'This might result in an unexpected behaniour.',
       );
     }
   }
@@ -374,8 +266,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   String toString() {
     return 'DiContainer('
         '$name, '
-        'inheritanceType: linkParent, '
-        'isInitialized: $isInitialized, '
         'isSealed: $isSealed, '
         'isClosed: $isClosed, '
         'types: [${_entitiesMap.keys.join(', ')}]'
@@ -385,7 +275,6 @@ abstract final class DiContainerBaseImpl implements DiContainerBase {
   @override
   Future<void> close() async {
     await _disposeAll();
-    _registrationCallbacks.clear();
     _disposers.clear();
     _entitiesMap.clear();
     _isClosed = true;

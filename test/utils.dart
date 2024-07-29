@@ -15,10 +15,12 @@ class DisposableClass {
 }
 
 T measure<T>(T Function() callback, String text, {skip = false}) {
+  if (skip) return callback();
+
   final sw = Stopwatch()..start();
   final callbackResult = callback();
   final elapsed = sw.elapsedMicroseconds;
-  if (!skip) print('$text: $elapsed');
+  print('$text: $elapsed');
   sw.stop();
   return callbackResult;
 }

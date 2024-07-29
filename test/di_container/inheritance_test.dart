@@ -21,11 +21,9 @@ void main() {
             'Parent entity is retrieved',
             () {
               final parent = getUut();
-              parent.registerSingleton<SimpleClass>(() => SimpleClass());
-              parent.initialize();
+              parent.registerSingleton<SimpleClass>(SimpleClass());
 
               final uut = getUut(parent: parent);
-              uut.initialize();
 
               expect(uut.isRegistered<SimpleClass>(), isTrue);
             },
@@ -37,7 +35,6 @@ void main() {
               final parentOfParent = getUut(name: 'parentOfParent');
               final parent = getUut(name: 'parent', parent: parentOfParent);
               final uut = getUut(parent: parent);
-              uut.initialize();
 
               expect(uut.hierarchy.length, 3);
               expect(uut.hierarchy.first, uut.name);
@@ -51,13 +48,11 @@ void main() {
             () {
               final parent = getUut(name: 'parent');
               final parentSingleton = SimpleClass();
-              parent.registerSingleton<SimpleClass>(() => parentSingleton);
-              parent.initialize();
+              parent.registerSingleton<SimpleClass>(parentSingleton);
 
               final uut = getUut(parent: parent);
               final uutSingleton = SimpleClass();
-              uut.registerSingleton<SimpleClass>(() => uutSingleton);
-              uut.initialize();
+              uut.registerSingleton<SimpleClass>(uutSingleton);
 
               expect(uut.get<SimpleClass>() == uutSingleton, isTrue);
               expect(uut.get<SimpleClass>() == parentSingleton, isFalse);
@@ -80,11 +75,9 @@ void main() {
             'Parent entity is retrieved',
             () {
               final parent = getUut();
-              parent.registerSingleton<SimpleClass>(() => SimpleClass());
-              parent.initialize();
+              parent.registerSingleton<SimpleClass>(SimpleClass());
 
               final uut = getUut(parent: parent);
-              uut.initialize();
 
               expect(uut.isRegistered<SimpleClass>(), isTrue);
             },
@@ -109,13 +102,11 @@ void main() {
             () {
               final parent = getUut(name: 'parent');
               final parentSingleton = SimpleClass();
-              parent.registerSingleton<SimpleClass>(() => parentSingleton);
-              parent.initialize();
+              parent.registerSingleton<SimpleClass>(parentSingleton);
 
               final uut = getUut(parent: parent);
               final uutSingleton = SimpleClass();
-              uut.registerSingleton<SimpleClass>(() => uutSingleton);
-              uut.initialize();
+              uut.registerSingleton<SimpleClass>(uutSingleton);
 
               expect(uut.get<SimpleClass>() == uutSingleton, isTrue);
               expect(uut.get<SimpleClass>() == parentSingleton, isFalse);
@@ -129,15 +120,15 @@ void main() {
               final parentSingleton = InstantiableClass(() {});
               parent
                 ..registerFactory<SimpleClass>(() => SimpleClass())
-                ..registerSingleton<InstantiableClass>(() => parentSingleton)
-                ..initialize();
+                ..registerSingleton<InstantiableClass>(parentSingleton);
 
               final uut = getUut(parent: parent);
               final uutSingleton = InstantiableClass(() {});
               uut
-                ..registerSingleton<InstantiableClass>(() => uutSingleton)
-                ..registerFactory<DisposableClass>(() => DisposableClass(() {}))
-                ..initialize();
+                ..registerSingleton<InstantiableClass>(uutSingleton)
+                ..registerFactory<DisposableClass>(
+                  () => DisposableClass(() {}),
+                );
 
               expect(uut.maybeGet<SimpleClass>(), isA<SimpleClass>());
               expect(uut.maybeGet<InstantiableClass>(), equals(uutSingleton));

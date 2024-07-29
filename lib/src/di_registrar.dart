@@ -27,7 +27,7 @@ abstract interface class DiRegistrar {
   /// registered instance.
   ///
   void registerSingleton<T>(
-    T Function() callback, {
+    T instance, {
     FutureOr Function(T)? dispose,
   });
 
@@ -144,7 +144,7 @@ abstract class DiRegistrarAsync implements DiRegistrar {
   /// destroyed. Usually used for disposing of the resources created by the
   /// registered instance.
   ///
-  void registerSingletonAsync<T>(
+  Future<void> registerSingletonAsync<T>(
     Future<T> Function() callback, {
     FutureOr Function(T)? dispose,
   });

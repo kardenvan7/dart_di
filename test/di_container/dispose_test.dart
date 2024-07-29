@@ -9,7 +9,6 @@ void main() {
     'Dispose',
     () {
       DiContainer getUut() => DiContainer('');
-      DiContainerAsync getAsyncUut() => DiContainerAsync('');
 
       test(
         'Singleton is disposed',
@@ -19,10 +18,9 @@ void main() {
           bool isDisposed = false;
 
           uut.registerSingleton(
-            () => DisposableClass(() => isDisposed = true),
+            DisposableClass(() => isDisposed = true),
             dispose: (instance) => instance.dispose(),
           );
-          uut.initialize();
 
           expect(isDisposed, isFalse);
 
@@ -43,7 +41,6 @@ void main() {
             () => DisposableClass(() => isDisposed = true),
             dispose: (instance) => instance.dispose(),
           );
-          uut.initialize();
 
           // Needed for instance creation
           uut.get<DisposableClass>();
@@ -59,19 +56,17 @@ void main() {
       test(
         'Singleton async is disposed',
         () async {
-          final uut = getAsyncUut();
+          final uut = getUut();
 
           bool isDisposed = false;
 
-          uut.registerSingletonAsync(
+          await uut.registerSingletonAsync(
             () async => Future.delayed(
               const Duration(milliseconds: 100),
               () => DisposableClass(() => isDisposed = true),
             ),
             dispose: (instance) => instance.dispose(),
           );
-
-          await uut.initialize();
 
           expect(isDisposed, isFalse);
 
@@ -95,7 +90,6 @@ void main() {
             ),
             dispose: (instance) => instance.dispose(),
           );
-          uut.initialize();
 
           // Needed for instance creation
           await uut.getAsync<DisposableClass>();
@@ -117,8 +111,7 @@ void main() {
             ..registerLazySingleton<InstantiableClass>(
               () => InstantiableClass(() {}),
             )
-            ..registerSingleton<DisposableClass>(() => DisposableClass(() {}))
-            ..initialize();
+            ..registerSingleton<DisposableClass>(DisposableClass(() {}));
 
           expect(uut.isRegistered<SimpleClass>(), isTrue);
           expect(uut.isRegistered<InstantiableClass>(), isTrue);
