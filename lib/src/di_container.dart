@@ -11,14 +11,33 @@ part 'implementation.dart';
 part 'inheritance_mixins.dart';
 
 sealed class DiContainerBase implements DiRegistrar, DiRetriever {
+  /// Returns a list of types, registered in this container.
+  ///
+  List<Type> get registeredTypes;
+
+  /// A name of the container. Helpful for debugging.
+  ///
   String get name;
 
+  /// Returns a list of container names, starting from this one,
+  /// followed by it's parents until a parent container
+  /// with no parent.
+  ///
   List<String> get hierarchy;
 
   bool get isInitialized;
 
+  /// Returns true, if the container has already been sealed.
+  ///
+  /// "Sealed" means that no further registrations in the container
+  /// are allowed.
+  ///
   bool get isSealed;
 
+  /// Returns true, if this container has already been closed.
+  ///
+  /// Read [close] method description for more information.
+  ///
   bool get isClosed;
 
   DiContainerBase? get _parent;
@@ -36,6 +55,9 @@ sealed class DiContainerBase implements DiRegistrar, DiRetriever {
 
   void _seal();
 
+  /// Closes the container, disposing all disposable entites inside of it
+  /// and removing all registrations.
+  ///
   Future<void> close();
 }
 
