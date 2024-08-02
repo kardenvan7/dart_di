@@ -44,6 +44,12 @@ base mixin DiContainerImplCopyParentMixin on DiContainerImpl {
 
     return nonCopyAncestor;
   }
+
+  @override
+  Future<void> close() {
+    _directlyRegisteredTypes.clear();
+    return super.close();
+  }
 }
 
 base mixin DiContainerImplLinkParentMixin on DiContainerImpl {

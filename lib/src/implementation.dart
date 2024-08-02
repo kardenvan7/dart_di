@@ -259,8 +259,12 @@ abstract final class DiContainerImpl implements DiContainer {
     }
   }
 
-  Future<void> _disposeAll() =>
-      Future.wait(_disposers.reversed.map((value) async => await value()));
+  Future<void> _disposeAll() async {
+    for (final disposer in _disposers.reversed) {
+      await disposer();
+      _disposers.removeLast();
+    }
+  }
 
   @override
   String toString() {
@@ -275,7 +279,6 @@ abstract final class DiContainerImpl implements DiContainer {
   @override
   Future<void> close() async {
     await _disposeAll();
-    _disposers.clear();
     _entitiesMap.clear();
     _isClosed = true;
   }
